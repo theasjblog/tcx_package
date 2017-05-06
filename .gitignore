@@ -1,0 +1,6 @@
+.RBuildignore
+.Rhistory
+*.tcx
+.RData
+*.Rproj
+.Rproj*

@@ -1,0 +1,64 @@
+#' createSplits
+#' @description
+#' Function to split an activity into custom splits
+#' @param data (dataframe) a dataframe generated with gpxAnalyser::dataLoader()
+#' @param splitValues (numeric vector) the split points
+#' \itemize{
+#' \item To split for distance enter the value in meters, i.e. 1000 to split at every Km
+#' \item To split for distance enter the value in minutes, i.e. 5.5 to split at every 5min30sec
+#' }
+#' @param type (character). one of the following:
+#' \itemize{
+#' \item 'everyKm' to split at every Km, i.e. every 5Km
+#' \item 'thisKm' to split at specific Km values, i.e. 1, 4, 6, 7 Km
+#' \item 'everyMin' to split at every min, i.e. every 5min
+#' \item 'thisMin' to split at specific min, i.e. 1, 4, 6, 7 min
+#' }
+#' @return
+#' The function returns a list of data frames, one for each split
+#' @details
+#' The function accepts a data frame created with the dataLoader
+#' function
+#' @examples
+#' # gpx <- dataLoader("path_to_activity.tcx")
+#' # sp<-createSplits(gpx, 2000, type = "everyKm")
+#' # sp<-createSplits(gpx, c(1000, 3000, 4500), type = "thisKm")
+#' # sp<-createSplits(gpx, 2, type = "everyMin")
+#' # sp<-createSplits(gpx, c(3, 4.5, 6.75), type = "everyMin")
+#' @export
+
+createSplits <- function (data, splitValues,
+                          type = c("everyKm","thisKm", "everyMin", "thisMin")[1]){
+  #Km is in meters
+  #time is in minutes
+  if (type == "everyKm"){
+    nIntervals<-floor(max(data$DistanceMeters)/splitValues)+1
+    splitValues <- seq(0,splitValues*nIntervals,splitValues)
+    what <- "DistanceMeters"
+  }
+  if (type == "thisKm"){
+    if (splitValues[1] != 0){splitValues <-c(0, splitValues)}
+    if (splitValues[length(splitValues)] < max(data$DistanceMeters)){
+      splitValues <-c(splitValues, max(data$DistanceMeters))
+    }
+    what <- "DistanceMeters"
+  }
+
+  if (type == "everyMin"){
+    nIntervals<-floor(max(data$Time)/splitValues)+1
+    splitValues <- seq(0,splitValues*nIntervals,splitValues)
+    what <- "Time"
+  }
+  if (type == "thisMin"){
+    if (splitValues[1] != 0){splitValues <-c(0, splitValues)}
+    if (splitValues[length(splitValues)] < max(data$Time)){
+      splitValues <-c(splitValues, max(data$Time))
+    }
+    what <- "Time"
+  }
+
+
+  n<-doSplit(data, what, splitValues = splitValues)
+
+  return(n)
+}
