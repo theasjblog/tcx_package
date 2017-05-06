@@ -32,6 +32,10 @@ plotCompareSplit<-function(data, doFacet = TRUE){
   plottingData<-melt(summaryTable, "Interval")
   plottingData_norm<-melt(summaryTable_norm, "Interval")
 
+  #required to pass r cmd check
+  Interval<-NULL
+  value<-NULL
+  variable<-NULL
 
   if(doFacet){
     p<-ggplot(data = plottingData,aes(x = Interval, y = as.numeric(value),

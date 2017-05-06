@@ -112,6 +112,9 @@ modifyColumns<- function(summaryTable, adding, selectedColumn){
 
 #require(zoo)
 argmax <- function(x, y, w=1, ...) {
+  #required to pass r cmd check
+  loess<-NULL
+
   n <- length(y)
   y.smooth <- loess(y ~ x, ...)$fitted
   y.max <- rollapply(zoo(y.smooth), 2*w+1, max, align="center")

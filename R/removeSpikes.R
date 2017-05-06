@@ -56,6 +56,10 @@ myFn<-function(data, tolLevel){
 
 
 smoothFn<-function(data, span){
+  #required to pass r cmd check
+  loess<-NULL
+  predict<-NULL
+
   val<-data.frame(y=data,
                   x=seq(1,length(data),1))
   myMod <- loess(y ~ x,

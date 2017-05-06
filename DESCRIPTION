@@ -1,8 +1,11 @@
-Package: gpxAnalyser
-Title: What the Package Does (one line, title case)
-Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Package: tcxAnalyser
+Title: tcx file analyzer
+Version: 0.0.1
+Authors@R: person("Adrian", "Joseph", email = "tequilacanaria@hotmail.it",
+                  role = c("aut", "cre"))
+Description: The package analyses tcx files obtained from Garmin connect.
+  Activities can be divided in splits and summary tables and plots can
+  be produced to analyse the activity.
 Depends: R (>= 3.3.3)
 License: What license is it under?
 Imports: XML,
@@ -18,3 +21,4 @@ Imports: XML,
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
+Suggests: testthat
