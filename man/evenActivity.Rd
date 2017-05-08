@@ -7,16 +7,16 @@
 \format{A data frame with 4324 rows and 11 variables:
 \describe{
   \item{Time}{The recorded time}
-  \item{Position}{a}
-  \item{AltitudeMeters}{a}
-  \item{DistanceMeters}{a}
-  \item{HeartRateBpm}{a}
-  \item{Extensions}{a}
-  \item{lat}{a}
-  \item{lon}{a}
-  \item{AltitudeMetersDiff}{a}
-  \item{Pace}{a}
-  \item{Speed}{a}
+  \item{Position}{The lat-lon position}
+  \item{AltitudeMeters}{The altitude above sea level}
+  \item{DistanceMeters}{The distance done [meters]}
+  \item{HeartRateBpm}{The hear rate}
+  \item{Extensions}{??}
+  \item{lat}{The calculated latitude}
+  \item{lon}{The calculated longitude}
+  \item{AltitudeMetersDiff}{The elevation gained/lost}
+  \item{Pace}{The pace [min/km]}
+  \item{Speed}{The speed [km/h]}
 }}
 \usage{
 evenActivity
