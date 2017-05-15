@@ -15,25 +15,24 @@
 #' # autoSp<-autoSplits(gpx, 1, 1.1)
 #' @export
 
-autoSplits<-function(data, w,span){
-  x<-data$Time
-  y<-data$DistanceMeters
+autoSplits<-function(data, w, span){
+  if (!is.data.frame(data)){
+    stop("Data must be a data frame")
+  }
+  y<-data$Time
+  x<-data$DistanceMeters
   a<-argmax(x, y, w = w, span = span)
 
-  #y.min<-min(y)
-  #plot(x,y, cex = 0.75, col = "Gray")
-  #lines(x,a$y.hat, lwd = 2)
-  #sapply(a$i, function(i) lines(c(x[i], x[i]), c(y.min, a$y.hat[i]),
-  #                              col = "Red", lty = 2))
-  #points(x[a$i], a$y.hat[a$i], col = "Red", pch = 19, cex = 1.25)
+  y.min<-min(y)
+  plot(x,y, cex = 0.75, col = "Gray")
+  lines(x,a$y.hat, lwd = 2)
+  sapply(a$i, function(i) lines(c(x[i], x[i]), c(y.min, a$y.hat[i]),
+                                col = "Red", lty = 2))
+  points(x[a$i], a$y.hat[a$i], col = "Red", pch = 19, cex = 1.25)
+  
+  aa<<-x[a$i]
 
-  res<-createSplits(data, x[a$i], "thisMin")
+  res<-createSplits(data, x[a$i], "thisKm")
 
   return(res)
 }
-
-
-
-
-
-

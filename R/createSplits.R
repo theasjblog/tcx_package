@@ -58,7 +58,7 @@ createSplits <- function (data, splitValues,
   }
 
 
-  n<-doSplit(data, what, splitValues = splitValues)
+  n<-doSplit(data, what, splitValues = unique(splitValues))
 
   return(n)
 }

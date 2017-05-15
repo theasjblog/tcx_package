@@ -81,6 +81,9 @@ a$Pace<-1000*a$Time/a$DistanceMeters
 a$Speed<-0.06*a$DistanceMeters/a$Time
 a$Pace[1]<-0
 a$Speed[1]<-0
+a <- subset(a, !duplicated(a$Time))
+a <- subset(a, !duplicated(a$DistanceMeters))
+
 
 return(a)
 }

@@ -6,7 +6,7 @@ Authors@R: person("Adrian", "Joseph", email = "tequilacanaria@hotmail.it",
 Description: The package analyses tcx files obtained from Garmin connect.
   Activities can be divided in splits and summary tables and plots can
   be produced to analyse the activity.
-Depends: R (>= 3.3.3)
+Depends: R (>= 3.3.1)
 License: What license is it under?
 Imports: XML,
   dplyr,
