@@ -1,21 +1,22 @@
-#' removeSpikes
-#' @description
-#' Function to remove spikes in metrics
-#' @param data a dataframe generated with gpxAnalyser::dataLoader() or the
-#' list of dataframes generated with gpxAnalyser::createSplits()
-#' @param tolLevel (numeric) the tolerance level
-#' @param span (numeric) the span value for the smooth function.
-#' Big span means big smooth
-#' @return
-#' The given object without the spikes
-#' @details
-#' The function accepts a list of dataframes or a data frame created
-#' with createSplits() or dataLoader()
-#' @examples
-#' gpx <- intervalActivity
-#' sp <- createSplits(gpx, 2000, type = "everyKm")
-#' sp <- removeSpikes(sp)
-#' @export
+#NOT exported now because it is not ready/useful
+# #' removeSpikes
+# #' @description
+# #' Function to remove spikes in metrics
+# #' @param data a dataframe generated with gpxAnalyser::dataLoader() or the
+# #' list of dataframes generated with gpxAnalyser::createSplits()
+# #' @param tolLevel (numeric) the tolerance level
+# #' @param span (numeric) the span value for the smooth function.
+# #' Big span means big smooth
+# #' @return
+# #' The given object without the spikes
+# #' @details
+# #' The function accepts a list of dataframes or a data frame created
+# #' with createSplits() or dataLoader()
+# #' @examples
+# #' gpx <- intervalActivity
+# #' sp <- createSplits(gpx, 2000, type = "everyKm")
+# #' sp <- removeSpikes(sp)
+# #' @export
 
 removeSpikes<-function(data, tolLevel = 0.1, span = 0.5){
 

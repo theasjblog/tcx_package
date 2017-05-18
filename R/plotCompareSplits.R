@@ -21,7 +21,6 @@
 #' plotCompareSplit(sp, doFacet=TRUE, type = "norm")
 #' plotCompareSplit(sp, doFacet=FALSE, type = "norm")
 #' plotCompareSplit(sp, doFacet=TRUE, type = "perc")
-
 #' @export
 
 

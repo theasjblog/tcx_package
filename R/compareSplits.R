@@ -23,8 +23,8 @@ compareSplits<-function(data){
     res3<-c(Altitude=sumF(data[,toSum]))
     res<-c(res1, res2, res3)
     summaryTable<-as.data.frame(t(res))
-    colnames(summaryTable)<-c("Time", "Distance","HR",
-                              "Altitude", "Pace", "Speed")
+    colnames(summaryTable)<-c("Time [min]", "Distance [m]","HR",
+                              "Pace [mimn/Km]", "Speed [Km/h]", "Elevation gain [m]")
   } else {
 
   res<-lapply(data, function(x){
