@@ -70,9 +70,7 @@ if ("Position" %in% columnsRead){
 a<-a[!is.na(a$lat),]
 
 
-#handle speed and pace. compute here, but also in splits using
-#diff(time)/diff(distance). make a function in helper to compute
-#them
+
 if ("AltitudeMeters" %in% columnsRead){
   a$AltitudeMetersDiff<-c(0, diff(a$AltitudeMeters))
 }
@@ -81,9 +79,6 @@ a$Pace<-1000*a$Time/a$DistanceMeters
 a$Speed<-0.06*a$DistanceMeters/a$Time
 a$Pace[1]<-0
 a$Speed[1]<-0
-a <- subset(a, !duplicated(a$Time))
-a <- subset(a, !duplicated(a$DistanceMeters))
-
 
 return(a)
 }

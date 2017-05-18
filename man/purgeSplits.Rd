@@ -22,8 +22,7 @@ Function to a eliminate splits
 The function accepts a list of dataframes createdwith createSplits() or dataLoader()
 }
 \examples{
-# gpx <- dataLoader("path_to_activity.tcx")
-# generateMap(gpx)
-# sp<-createSplits(gpx, 2000, type = "everyKm")
-# purgedSplits <- purgeSplits(sp, splitsToEliminate = c(1))
+gpx <- evenActivity
+sp <- createSplits(gpx, 2000, type = "everyKm")
+purgedSplits <- purgeSplits(sp, splitsToEliminate = c(1))
 }

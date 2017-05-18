@@ -4,7 +4,7 @@
 \alias{plotCompareSplit}
 \title{plotCompareSplits}
 \usage{
-plotCompareSplit(data, doFacet = TRUE)
+plotCompareSplit(data, doFacet = TRUE, type = c("raw", "norm", "perc")[2])
 }
 \arguments{
 \item{data}{(list) the list of dataframes generated with
@@ -12,6 +12,11 @@ gpxAnalyser::createSplits()}
 
 \item{doFacet}{(logical) TRUE to plot variables separetly, FALSE to plot
 them overlayed}
+
+\item{type}{(character) One of "raw", "norm" or "perc" to plot differently
+normalised valued. Raw is the raw data. Norm is the data normalised in the rage 0 to 100,
+perc is the variation in percentage from the mean value of all the intervals. If using 'raw'
+or 'perc' it is suggested to set doFacet = TRUE}
 }
 \value{
 A ggplot object
@@ -24,8 +29,10 @@ The function accepts a list of dataframes created
 with createSplits()
 }
 \examples{
-# gpx <- dataLoader("path_to_activity.tcx")
-# generateMap(gpx)
-# sp<-createSplits(gpx, 2000, type = "everyKm")
-# plotCompareSplits(sp)
+gpx <- intervalActivity
+sp <- autoSplits(gpx)
+plotCompareSplit(sp, doFacet=TRUE, type = "raw")
+plotCompareSplit(sp, doFacet=TRUE, type = "norm")
+plotCompareSplit(sp, doFacet=FALSE, type = "norm")
+plotCompareSplit(sp, doFacet=TRUE, type = "perc")
 }

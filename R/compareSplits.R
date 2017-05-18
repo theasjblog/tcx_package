@@ -7,9 +7,9 @@
 #' @details
 #' The function accepts a list of dataframes created with createSplits()
 #' @examples
-#' # gpx <- dataLoader("path_to_activity.tcx")
-#' # sp<-createSplits(gpx, 2000, type = "everyKm")
-#' # compare<-createSplits(sp)
+#' gpx <- intervalActivity
+#' sp<-autoSplits(gpx)
+#' compareSplits(sp)
 #' @export
 
 compareSplits<-function(data){

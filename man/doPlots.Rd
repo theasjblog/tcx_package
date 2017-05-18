@@ -31,11 +31,10 @@ The function accepts a list of dataframes or a data frame created
 with createSplits() or dataLoader()
 }
 \examples{
-# gpx <- dataLoader("path_to_activity.tcx")
-# generateMap(gpx)
-# sp<-createSplits(gpx, 2000, type = "everyKm")
-# doPlots(gpx)
-# doPlots(gpx, doFacet = TRUE)
-# doPlots(sp)
-# doPlots(sp, doFacet = TRUE)
+gpx <- evenActivity
+sp<-createSplits(gpx, 2000, type = "everyKm")
+doPlots(gpx)
+doPlots(gpx, doFacet = TRUE)
+doPlots(sp)
+doPlots(sp, doFacet = TRUE)
 }

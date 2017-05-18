@@ -20,11 +20,11 @@
 #' The function accepts a data frame created with the dataLoader
 #' function
 #' @examples
-#' # gpx <- dataLoader("path_to_activity.tcx")
-#' # sp<-createSplits(gpx, 2000, type = "everyKm")
-#' # sp<-createSplits(gpx, c(1000, 3000, 4500), type = "thisKm")
-#' # sp<-createSplits(gpx, 2, type = "everyMin")
-#' # sp<-createSplits(gpx, c(3, 4.5, 6.75), type = "everyMin")
+#' gpx <- evenActivity
+#' sp<-createSplits(gpx, 2000, type = "everyKm")
+#' sp<-createSplits(gpx, c(1000, 3000, 4500), type = "thisKm")
+#' sp<-createSplits(gpx, 2, type = "everyMin")
+#' sp<-createSplits(gpx, c(5, 15, 35), type = "thisMin")
 #' @export
 
 createSplits <- function (data, splitValues,

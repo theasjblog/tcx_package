@@ -109,22 +109,6 @@ modifyColumns<- function(summaryTable, adding, selectedColumn){
               adding = adding))
 }
 
-
-#require(zoo)
-argmax <- function(x, y, w, span) {
-  #required to pass r cmd check
-  loess<-NULL
-
-  n <- length(y)
-  y.smooth <- loess(y ~ x, span)$fitted
-  y.max <- rollapply(zoo(y.smooth), 2*w+1, max, align="center")
-  delta <- y.max - y.smooth[-c(1:w, n+1-1:w)]
-  i.max <- which(delta <= 0) + w
-  res <- list(x=x[i.max], i=i.max, y.hat=y.smooth)
-  return(res)
-}
-
-
 doSplit <- function(data, what, splitValues){
   n<-split(data, cut(data[,what], splitValues, include.lowest=TRUE))
   n<-lapply(n,function(x){
@@ -152,6 +136,11 @@ columnExpected<-function(){
 
 
 normFn<-function(x){
-  plotrix::rescale(x,c(0,100))
+  rescale(x,c(0,100))
 }
+
+percFn<-function(x){
+  100*((x-mean(x))/mean(x))
+}
+
 
