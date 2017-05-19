@@ -29,14 +29,25 @@
 
 createSplits <- function (data, splitValues,
                           type = c("everyKm","thisKm", "everyMin", "thisMin")[1]){
+  
+  if("DistanceMeters" %in% colnames(data) & any(diff(data$DistanceMeters)<0)){
+    message("This workout is likely a swim. It will be split as such")
+    n <- split(data, seq(nrow(data)))
+  } else {
   #Km is in meters
   #time is in minutes
   if (type == "everyKm"){
+    if(!"DistanceMeters" %in% colnames(data)){
+      stop("Cannot split by distance as the column 'DistanceMeters' is not present")
+    }
     nIntervals<-floor(max(data$DistanceMeters)/splitValues)+1
     splitValues <- seq(0,splitValues*nIntervals,splitValues)
     what <- "DistanceMeters"
   }
   if (type == "thisKm"){
+    if(!"DistanceMeters" %in% colnames(data)){
+      stop("Cannot split by distance as the column 'DistanceMeters' is not present")
+    }
     if (splitValues[1] != 0){splitValues <-c(0, splitValues)}
     if (splitValues[length(splitValues)] < max(data$DistanceMeters)){
       splitValues <-c(splitValues, max(data$DistanceMeters))
@@ -45,11 +56,17 @@ createSplits <- function (data, splitValues,
   }
 
   if (type == "everyMin"){
+    if(!"Time" %in% colnames(data)){
+      stop("Cannot split by time as the column 'Time' is not present")
+    }
     nIntervals<-floor(max(data$Time)/splitValues)+1
     splitValues <- seq(0,splitValues*nIntervals,splitValues)
     what <- "Time"
   }
   if (type == "thisMin"){
+    if(!"Time" %in% colnames(data)){
+      stop("Cannot split by time as the column 'Time' is not present")
+    }
     if (splitValues[1] != 0){splitValues <-c(0, splitValues)}
     if (splitValues[length(splitValues)] < max(data$Time)){
       splitValues <-c(splitValues, max(data$Time))
@@ -59,6 +76,8 @@ createSplits <- function (data, splitValues,
 
 
   n<-doSplit(data, what, splitValues = unique(splitValues))
-
+}
+  
+  names(n)<-paste("interval",seq(1,length(n),1), sep = "")
   return(n)
 }

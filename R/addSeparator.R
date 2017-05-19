@@ -3,6 +3,8 @@
 #' Function to add a split separator
 #' @param data a dataframe generated with gpxAnalyser::dataLoader()
 #' @param splitHere (numeric) vector for where to split
+#' @param xVariable (numeric) the variable (column name) to put on the x axis
+#' @param yVariable (numeric) the variable (column name) to put on the y axis
 #' @return
 #' A list of dataframes, one for each split
 #' @details
@@ -22,15 +24,27 @@
 #' @export
 
 #split on time only?
-addSeparator<-function(data, splitHere){
+addSeparator<-function(data, splitHere, xVariable="Time", yVariable = "DistanceMeters"){
   if (!is.data.frame(data)){
     stop("data must be a data frame")
   }
+  if(!is.numeric(splitHere) | any(is.na(splitHere))){
+    stop("splitHere must be numeric and not NAs")
+  }
+  if (length(xVariable)>1 | !is.character(xVariable) | !xVariable %in% colnames(data)){
+    "xvariable must be a character vector of length 1 and must be a column name available in data"
+  }
+  if (length(yVariable)>1 | !is.character(yVariable) | !yVariable %in% colnames(data)){
+    "yvariable must be a character vector of length 1 and must be a column name available in data"
+  }
+  
+  plotData<-data.frame(x=data[,xVariable],
+                       y=data[,yVariable])
   
   #needed to pass R CMD Check
-  Time <- NULL
-  DistanceMeters <- NULL
+  x <- NULL
+  y <- NULL
   
-  p<-ggplot(data, aes(Time, DistanceMeters, color = "red"))+geom_line()+geom_vline(xintercept = splitHere, colour = "blue")
+  p<-ggplot(plotData, aes(x, y, color = "red"))+geom_line()+geom_vline(xintercept = splitHere, colour = "blue")
   print(p)
 }

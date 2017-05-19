@@ -4,7 +4,7 @@
 #' will find and return those
 #' @param data a dataframe generated with gpxAnalyser::dataLoader()
 #' @param span (numeric) a numeric value. The smaller the values, the more splits you get (normally)
-#' Use columns = 'all' to plot all the metrics
+#' @param yVariable (numeric) the variable (column name) to put on the y axis
 #' @return
 #' A list of dataframes, one for each split
 #' @details
@@ -16,17 +16,28 @@
 #' # autoSp <- autoSplits(gpx, span = 25) 
 #' @export
 
-autoSplits<-function(data, span=NULL){
+autoSplits<-function(data, span=NULL, yVariable="DistanceMeters"){
   if (!is.data.frame(data)){
     stop("Data must be a data frame")
+  }
+  if (!"Time" %in% colnames(data)){
+    "The column 'Time' is not in the data!"
+  }
+  if (length(yVariable)>1 | !is.character(yVariable) | !yVariable %in% colnames(data)){
+    "yvariable must be a character vector of length 1 and must be a column name available in data"
   }
   
   idx<-data$Time[diff(data$Time)==0]
   if (length(idx)==0){
-  if (is.null(span)){
-    stop("No watch provided splits. Must use the span argument")
-  }
-  xz<-data$DistanceMeters/data$Time
+    if (is.null(span)){
+      stop("No watch provided splits. Must use the span argument")
+    }
+  
+    splitData<-data.frame(Time = data$Time,
+                        y = data[, yVariable])
+  
+  
+  xz<-splitData[,yVariable]/splitData$Time
   xz<-as.zoo(xz[-1])
   isPeak<-rollapply(xz,span,function(x) which.min(x)==span)
   isPeak<-which(isPeak)
@@ -34,7 +45,7 @@ autoSplits<-function(data, span=NULL){
   n<-data.frame(b=isPeak,
                 diff=c(0,diff(isPeak)),
                 time=data$Time[isPeak],
-                dist=data$DistanceMeters[isPeak]
+                dist=splitData[isPeak,yVariable]
                 )
   n$diffTime <- c(0,diff(n$time))
   

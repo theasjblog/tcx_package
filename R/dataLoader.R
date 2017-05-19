@@ -27,59 +27,81 @@ NULL
 dataLoader <- function(datapath){
 definedColumns<-columnExpected()
 
-doc<- xmlParse(datapath)
-a<-xmlToDataFrame(nodes <- getNodeSet(doc, "//ns:Trackpoint", "ns"))
-#no nans
-nans <- NULL
-for (i in 1:dim(a)[2]){
-  nans<-append(nans, which(is.na(a[,i])))
+x <- read_xml(datapath)
+ns <- xml_ns(x)
+cols <- suppressWarnings(xml_name(xml_children(xml_find_one(x, 
+                                                            "//d1:Trackpoint", ns))))
+cols <- paste0("//d1:", cols)
+if (any(grepl("Position", cols))) {
+  cols <- cols[!grepl("Position", cols)]
+  tmp <- suppressWarnings(xml_name(xml_children(xml_find_one(x, 
+                                                             "//d1:Position", ns))))
+  cols <- c(cols, paste0("//d1:", tmp))
 }
-a<-a[-c(nans),]
-
-#check dataframe
-columnsRead<-colnames(a)
-if (!definedColumns$timeColumn %in% columnsRead){
-  stop("Time'c must be present")
+if (any(grepl("Extensions", cols))) {
+  cols <- cols[!grepl("Extensions", cols)]
+  tmp <- suppressWarnings(xml_name(xml_children(xml_find_one(x, 
+                                                             "//ns3:TPX", ns))))
+  cols <- c(cols, paste0("//ns3:", tmp))
 }
+trcols <- paste0("//d1:Trackpoint", cols)
+message("Reading .tcx file...")
+data <- lapply(trcols, function(c) {
+  out <- xml_text(xml_find_all(x, c, ns))
+  if (all(!is.na(suppressWarnings(as.numeric(out))))) 
+    out <- as.numeric(out)
+  out
+})
 
-
+names(data) <- vapply(strsplit(cols, ":"), function(x) x[length(x)], 
+                      character(1))
 #convert time
-a$Time<-as.character(a$Time)
-b<-strsplit(a$Time, "T")
+#data$Time <- as.POSIXct(gsub("[[:upper:]]", " ", data$Time), 
+#                        origin = Sys.time() - as.numeric(Sys.time()), format = "%Y-%m-%d %H:%M:%S ")
+f<<-data
+data$Time<-as.character(data$Time)
+b<-strsplit(data$Time, "T")
 n<-sapply(b, "[[", 2)
 b<-strsplit(n, "\\.")
 n<-sapply(b, "[[", 1)
 times<-c(as.matrix(read.table(text = n, sep = ":")) %*% c(60, 1, 1/60))
-a$Time<-times-times[1]
-#make position, distance, altitude, HRM the right format
-b<-a
-a<-as.data.frame(lapply(a, function(x){as.numeric(x)}))
-v<-sapply(a, function(a)all(is.na(a)))
-if (any(v)){
-  a[,v]<-b[,v]
+
+
+len <- vapply(data, length, numeric(1))
+if (length(unique(len)) > 1) {
+  message("Resolving missing data points...")
+  issues <- names(len[len < max(len, na.rm = TRUE)])
+  
+  .issues <- cols[vapply(issues, function(x) which(grepl(x, 
+                                                         cols)), numeric(1))]
+  nds <- as_list(xml_find_all(x, "//d1:Trackpoint", ns))
+  
+  data<-dealMissingPoints(data, issues, nds)
+  
+  
 }
 
-if ("Position" %in% columnsRead){
-  #compute lat and lon
-  for (i in 1:dim(a)[1]){
-    coord <- split_coord(a$Position[i])
-    a$lat[i]<-coord$lat
-    a$lon[i]<-coord$lon
-  }
-}
-a<-a[!is.na(a$lat),]
-
-
-
-if ("AltitudeMeters" %in% columnsRead){
-  a$AltitudeMetersDiff<-c(0, diff(a$AltitudeMeters))
+f<<-data
+fields<-names(data)
+for (i in 1:length(fields)){
+  data[[i]]<-interpolateMissing(data[[i]])
 }
 
-a$Pace<-1000*a$Time/a$DistanceMeters
-a$Speed<-0.06*a$DistanceMeters/a$Time
-a$Pace[1]<-0
-a$Speed[1]<-0
+data$Time<-times-times[1]
 
-return(a)
+data <- as.data.frame(data)
+
+if("Time" %in% colnames(data) && "DistanceMeters" %in% colnames(data)){
+  data$Pace<-1000*data$Time/data$DistanceMeters
+  data$Speed<-0.06*data$DistanceMeters/data$Time
+  data$Pace[1]<-0
+  data$Speed[1]<-0
+}
+if ("AltitudeMeters" %in% colnames(data)){
+  data$AltitudeMetersDiff<-c(0, diff(data$AltitudeMeters))
+}
+
+return(data)
+
 }
 

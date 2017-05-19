@@ -120,7 +120,6 @@ doSplit <- function(data, what, splitValues){
     x$Speed[1]<-0
     return(x)
     })
-  names(n)<-paste("interval",seq(1,length(n),1), sep = "")
   return(n)
 }
 
@@ -144,3 +143,76 @@ percFn<-function(x){
 }
 
 
+dealMissingPoints <- function(data, issues, nds){
+  
+  for (ii in 1:length(issues)){
+    n<-lapply(nds,function(x){names(x)})
+    
+    v<-unlist(lapply(seq_along(n),function(i){
+      if (issues[[ii]] %in% n[[i]]){
+        i
+      } else {
+        NA
+      }
+    }))
+    idx<-length(which(!is.na(v)))
+    
+    if (idx == 0){
+      n<-lapply(nds,function(x){names(x$Extensions$TPX)})
+      
+      v<-unlist(lapply(seq_along(n),function(i){
+        if (issues[[ii]] %in% n[[i]]){
+          i
+        } else {
+          NA
+        }
+      }))
+    }
+    idx<-length(which(!is.na(v)))
+    
+    if (idx == 0){
+      n<-lapply(nds,function(x){names(x$Position)})
+      
+      v<-unlist(lapply(seq_along(n),function(i){
+        if (issues[[ii]] %in% n[[i]]){
+          i
+        } else {
+          NA
+        }
+      }))
+    }
+    
+    haveit <- which(!is.na(v))
+    temp<-data[[issues[ii]]]
+    data[[issues[ii]]]<-v
+    data[[issues[ii]]][haveit]<-temp
+    
+  }
+  return(data)
+}
+
+
+interpolateMissing <-function(data){
+  
+  missing<-which(is.na(data) | data==0)
+  haveit<-which(!is.na(data) & data!=0)
+  if (length(missing) > 0){
+    if (missing[1]==1){
+      data[1]<-data[haveit[1]]
+    }
+    if (missing[length(missing)]==length(data)){
+      data[length(data)]<-data[haveit[length(haveit)]]
+    }
+    m<-diff(missing)
+    end<-which(m>1)
+    end<-missing[end]
+    end<-c(end,missing[length(missing)])
+    start<-1+which(m>1)
+    start <- missing[start]
+    start<-c(missing[1],start)
+    for (i in 1:length(start)){
+      data[seq(start[i], end[i],1)] <- seq(from = data[start[i]-1], to = data[end[i]+1],length = (end[i]-start[i])+1)
+    }
+  }
+  return(data)
+}

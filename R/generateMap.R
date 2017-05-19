@@ -16,6 +16,11 @@
 #' @export
 
 generateMap <- function(data){
+  
+  if(!"LatitudeDegrees" %in% colnames(data) | !"LongitudeDegrees" %in% colnames(data)){
+    stop("data must contains the columns 'LatitudeDegrees' and 'LongitudeDegrees'")
+  }
+  
 m<-leaflet() %>% addTiles()
 
 if (!is.data.frame(data)){
@@ -23,15 +28,15 @@ if (!is.data.frame(data)){
   colors<- rep(colors,1+floor(length(data)/length(colors)))
   for(i in 1: length(data)){
   #add markers with colours for start, intermediate and finish
-    m<- m %>% addPolylines(data = data[[i]], ~lon, ~lat,
-                           color = colors[i]) %>% addMarkers(lng=data[[i]]$lon[length(data[[i]]$lon)],
-                                                             lat=data[[i]]$lat[length(data[[i]]$lat)],
+    m<- m %>% addPolylines(data = data[[i]], ~LongitudeDegrees, ~LatitudeDegrees,
+                           color = colors[i]) %>% addMarkers(lng=data[[i]]$LongitudeDegrees[length(data[[i]]$LongitudeDegrees)],
+                                                             lat=data[[i]]$LatitudeDegrees[length(data[[i]]$LatitudeDegrees)],
                                                              label=as.character(i))
     }
   } else {
-    m<- m %>% addPolylines(data = data, ~lon, ~lat,
-                           color = "blue") %>% addMarkers(lng=c(data$lon[1],data$lon[dim(data)[1]]),
-                                                          lat=c(data$lat[1],data$lat[dim(data)[1]]),
+    m<- m %>% addPolylines(data = data, ~LongitudeDegrees, ~LatitudeDegrees,
+                           color = "blue") %>% addMarkers(lng=c(data$LongitudeDegrees[1],data$LongitudeDegrees[dim(data)[1]]),
+                                                          lat=c(data$LatitudeDegrees[1],data$LatitudeDegrees[dim(data)[1]]),
                                                              label=c("start", "finish"))
     }
 m

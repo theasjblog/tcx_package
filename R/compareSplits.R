@@ -15,25 +15,96 @@
 compareSplits<-function(data){
 
   toDelta <- c("Time", "DistanceMeters")
+  toAvg<-c("HeartRateBpm", "Pace", "Speed", "Watts")
   toSum<- c("AltitudeMetersDiff")
-  toAvg<-c("HeartRateBpm", "Pace", "Speed")
+
+  
+  res1 <- NULL
+  res2 <- NULL
+  res3 <- NULL
   if (is.data.frame(data)){
-    res1<-apply(data[,colnames(data) %in% toDelta], 2,deltaF)
-    res2<-apply(data[,colnames(data) %in% toAvg], 2,avgF)
-    res3<-c(Altitude=sumF(data[,toSum]))
+    colRead <- colnames(data)
+    
+    idx<-which(!toDelta %in% colRead)
+    if(length(idx)>0){toDelta<-toDelta[-c(idx)]}
+    idx<-which(!toAvg %in% colRead)
+    if(length(idx)>0){toAvg<-toAvg[-c(idx)]}
+    idx<-which(!toSum %in% colRead)
+    if(length(idx)>0){toSum<-toSum[-c(idx)]}
+    
+    summaryNames <- c(toDelta, toAvg, toSum)
+    if(length(summaryNames)<1){
+      stop("Nosummary can be displayed with this data. Check your column names")
+    }
+    
+    if (length(toDelta)>0){
+      res1<-apply(data[,colnames(data) %in% toDelta], 2,deltaF)
+    }
+    if(length(toAvg)>0){
+      res2<-apply(data[,colnames(data) %in% toAvg], 2,avgF)
+    }
+    if(length(toSum)>0){
+      res3<-c(Altitude=sumF(data[,toSum]))
+    }
+    
     res<-c(res1, res2, res3)
     summaryTable<-as.data.frame(t(res))
-    colnames(summaryTable)<-c("Time [min]", "Distance [m]","HR",
-                              "Pace [mimn/Km]", "Speed [Km/h]", "Elevation gain [m]")
+    colnames(summaryTable) <- summaryNames
   } else {
 
-  res<-lapply(data, function(x){
-    res1<-apply(x[,colnames(x) %in% toDelta], 2,deltaF)
-    res2<-apply(x[,colnames(x) %in% toAvg], 2,avgF)
-    res3<-c(Altitude=sumF(x[,toSum]))
-    res<-c(res1, res2, res3)
-  })
-
+    colRead <- colnames(data[[1]])
+    idx<-which(!toDelta %in% colRead)
+    if(length(idx)>0){toDelta<-toDelta[-c(idx)]}
+    idx<-which(!toAvg %in% colRead)
+    if(length(idx)>0){toAvg<-toAvg[-c(idx)]}
+    idx<-which(!toSum %in% colRead)
+    if(length(idx)>0){toSum<-toSum[-c(idx)]}
+    
+    summaryNames <- c(toDelta, toAvg, toSum)
+    if(length(summaryNames)<1){
+      stop("Nosummary can be displayed with this data. Check your column names")
+    }
+    
+    
+    lengths<-unlist(lapply(data, function(x){
+      dim(x)[1]
+    }))
+    if(sum(lengths) == length(data)){
+      res<-lapply(data, function(x){
+        res1<-NULL
+        res2<-NULL
+        res3<-NULL
+        if (length(toDelta)>0){
+          res1<-x[,toDelta]
+        }
+        if(length(toAvg)>0){
+          res2<-x[,toDelta]
+        }
+        if(length(toSum)>0){
+          res3<-x[,toDelta]
+        }
+        
+      })
+    } else {
+      res<-lapply(data, function(x){
+        res1<-NULL
+        res2<-NULL
+        res3<-NULL
+        if (length(toDelta)>0){
+          res1<-apply(x[,colnames(x) %in% toDelta], 2,deltaF)
+        }
+        if (length(toAvg)>0){
+          res2<-apply(x[,colnames(x) %in% toAvg], 2,avgF)
+        }
+        if (length(toSum)>0){
+          res3<-c(Altitude=sumF(x[,toSum]))
+        }
+        res<-c(res1, res2, res3)
+      })
+      
+    }
+    
+  
   summaryTable <- rbindlist(
     lapply(res, FUN = getSummaryVect)
   )
@@ -41,6 +112,7 @@ compareSplits<-function(data){
   adding["Time"]<-sum(summaryTable$Time)
   adding["Distance"]<-sum(summaryTable$Distance)
   summaryTable<-rbind(summaryTable, as.data.frame(t(adding)))
+  f<<-summaryTable
   Interval<-c(as.character(seq(1,dim(summaryTable)[1]-1,1)),"Overall")
   summaryTable<-cbind(Interval, summaryTable)
   }

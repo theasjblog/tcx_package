@@ -4,13 +4,14 @@
 \alias{autoSplits}
 \title{splitsFinder}
 \usage{
-autoSplits(data, span = NULL)
+autoSplits(data, span = NULL, yVariable = "DistanceMeters")
 }
 \arguments{
 \item{data}{a dataframe generated with gpxAnalyser::dataLoader()}
 
-\item{span}{(numeric) a numeric value. The smaller the values, the more splits you get (normally)
-Use columns = 'all' to plot all the metrics}
+\item{span}{(numeric) a numeric value. The smaller the values, the more splits you get (normally)}
+
+\item{yVariable}{(numeric) the variable (column name) to put on the y axis}
 }
 \value{
 A list of dataframes, one for each split

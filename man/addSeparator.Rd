@@ -4,12 +4,17 @@
 \alias{addSeparator}
 \title{addSeparator}
 \usage{
-addSeparator(data, splitHere)
+addSeparator(data, splitHere, xVariable = "Time",
+  yVariable = "DistanceMeters")
 }
 \arguments{
 \item{data}{a dataframe generated with gpxAnalyser::dataLoader()}
 
 \item{splitHere}{(numeric) vector for where to split}
+
+\item{xVariable}{(numeric) the variable (column name) to put on the x axis}
+
+\item{yVariable}{(numeric) the variable (column name) to put on the y axis}
 }
 \value{
 A list of dataframes, one for each split
