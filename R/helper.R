@@ -205,6 +205,7 @@ interpolateMissing <-function(data){
       data[length(data)]<-data[haveit[length(haveit)]]
     }
     missing<-which(is.na(data) | data==0)
+    if(length(missing)>0){
     haveit<-which(!is.na(data) & data!=0)
     m<-diff(missing)
     end<-which(m>1)
@@ -216,6 +217,7 @@ interpolateMissing <-function(data){
     for (i in 1:length(start)){
       data[seq(start[i], end[i],1)] <- seq(from = data[start[i]-1], to = data[end[i]+1],length = (end[i]-start[i])+1)
     }
+  }
   }
   }
   return(data)

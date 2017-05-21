@@ -29,8 +29,9 @@ definedColumns<-columnExpected()
 
 x <- read_xml(datapath)
 ns <- xml_ns(x)
-cols <- suppressWarnings(xml_name(xml_children(xml_find_one(x,
+cols <- suppressWarnings(xml_name(xml_children(xml_find_all(x,
                                                             "//d1:Trackpoint", ns))))
+cols<-unique(cols)
 cols <- paste0("//d1:", cols)
 if (any(grepl("Position", cols))) {
   cols <- cols[!grepl("Position", cols)]
@@ -40,10 +41,11 @@ if (any(grepl("Position", cols))) {
 }
 if (any(grepl("Extensions", cols))) {
   cols <- cols[!grepl("Extensions", cols)]
-  tmp <- suppressWarnings(xml_name(xml_children(xml_find_one(x,
+  tmp <- suppressWarnings(xml_name(xml_children(xml_find_all(x,
                                                              "//ns3:TPX", ns))))
   cols <- c(cols, paste0("//ns3:", tmp))
 }
+cols<-unique(cols)
 trcols <- paste0("//d1:Trackpoint", cols)
 message("Reading .tcx file...")
 data <- lapply(trcols, function(c) {
@@ -79,7 +81,11 @@ times<-c(as.matrix(read.table(text = n, sep = ":")) %*% c(60, 1, 1/60))
 
     fields<-names(data)
     for (i in 1:length(fields)){
-      if (!fields[i] %in% c("Time", "DistanceMeters")){
+      if (fields[i] == "DistanceMeters"){
+        if(any(data[[i]] %%1 != 0)){
+        data[[i]]<-interpolateMissing(data[[i]])
+        }
+      }else{
         data[[i]]<-interpolateMissing(data[[i]])
       }
     }
@@ -88,7 +94,7 @@ times<-c(as.matrix(read.table(text = n, sep = ":")) %*% c(60, 1, 1/60))
 
     data <- as.data.frame(data)
 
-}
+
 
 
 if("Time" %in% colnames(data) && "DistanceMeters" %in% colnames(data)){
@@ -96,12 +102,13 @@ if("Time" %in% colnames(data) && "DistanceMeters" %in% colnames(data)){
   data$Speed<-0.06*data$DistanceMeters/data$Time
   data$Pace[1]<-0
   data$Speed[1]<-0
+  data$DistanceMeters[1] <- 0
 }
 if ("AltitudeMeters" %in% colnames(data)){
   data$AltitudeMetersDiff<-c(0, diff(data$AltitudeMeters))
 }
 
-idx<-which(apply(data,2,sum))
+idx<-which(is.na(apply(data,2,sum)))
 if(length(idx)>0){
   data<-data[,-idx]
 }
