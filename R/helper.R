@@ -144,10 +144,10 @@ percFn<-function(x){
 
 
 dealMissingPoints <- function(data, issues, nds){
-  
+
   for (ii in 1:length(issues)){
     n<-lapply(nds,function(x){names(x)})
-    
+
     v<-unlist(lapply(seq_along(n),function(i){
       if (issues[[ii]] %in% n[[i]]){
         i
@@ -156,10 +156,10 @@ dealMissingPoints <- function(data, issues, nds){
       }
     }))
     idx<-length(which(!is.na(v)))
-    
+
     if (idx == 0){
       n<-lapply(nds,function(x){names(x$Extensions$TPX)})
-      
+
       v<-unlist(lapply(seq_along(n),function(i){
         if (issues[[ii]] %in% n[[i]]){
           i
@@ -169,10 +169,10 @@ dealMissingPoints <- function(data, issues, nds){
       }))
     }
     idx<-length(which(!is.na(v)))
-    
+
     if (idx == 0){
       n<-lapply(nds,function(x){names(x$Position)})
-      
+
       v<-unlist(lapply(seq_along(n),function(i){
         if (issues[[ii]] %in% n[[i]]){
           i
@@ -181,20 +181,21 @@ dealMissingPoints <- function(data, issues, nds){
         }
       }))
     }
-    
+
     haveit <- which(!is.na(v))
     temp<-data[[issues[ii]]]
     data[[issues[ii]]]<-v
     data[[issues[ii]]][haveit]<-temp
-    
+
   }
   return(data)
 }
 
 
 interpolateMissing <-function(data){
-  
+
   missing<-which(is.na(data) | data==0)
+  if (length(missing)!=length(data)){
   haveit<-which(!is.na(data) & data!=0)
   if (length(missing) > 0){
     if (missing[1]==1){
@@ -203,6 +204,8 @@ interpolateMissing <-function(data){
     if (missing[length(missing)]==length(data)){
       data[length(data)]<-data[haveit[length(haveit)]]
     }
+    missing<-which(is.na(data) | data==0)
+    haveit<-which(!is.na(data) & data!=0)
     m<-diff(missing)
     end<-which(m>1)
     end<-missing[end]
@@ -213,6 +216,7 @@ interpolateMissing <-function(data){
     for (i in 1:length(start)){
       data[seq(start[i], end[i],1)] <- seq(from = data[start[i]-1], to = data[end[i]+1],length = (end[i]-start[i])+1)
     }
+  }
   }
   return(data)
 }

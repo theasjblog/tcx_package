@@ -1,6 +1,6 @@
 #' @import dplyr
 #' @import data.table
-#' @import XML
+#' @import xml2
 #' @import reshape2
 #' @import plotrix
 #' @import stringr
@@ -29,18 +29,18 @@ definedColumns<-columnExpected()
 
 x <- read_xml(datapath)
 ns <- xml_ns(x)
-cols <- suppressWarnings(xml_name(xml_children(xml_find_one(x, 
+cols <- suppressWarnings(xml_name(xml_children(xml_find_one(x,
                                                             "//d1:Trackpoint", ns))))
 cols <- paste0("//d1:", cols)
 if (any(grepl("Position", cols))) {
   cols <- cols[!grepl("Position", cols)]
-  tmp <- suppressWarnings(xml_name(xml_children(xml_find_one(x, 
+  tmp <- suppressWarnings(xml_name(xml_children(xml_find_one(x,
                                                              "//d1:Position", ns))))
   cols <- c(cols, paste0("//d1:", tmp))
 }
 if (any(grepl("Extensions", cols))) {
   cols <- cols[!grepl("Extensions", cols)]
-  tmp <- suppressWarnings(xml_name(xml_children(xml_find_one(x, 
+  tmp <- suppressWarnings(xml_name(xml_children(xml_find_one(x,
                                                              "//ns3:TPX", ns))))
   cols <- c(cols, paste0("//ns3:", tmp))
 }
@@ -48,17 +48,14 @@ trcols <- paste0("//d1:Trackpoint", cols)
 message("Reading .tcx file...")
 data <- lapply(trcols, function(c) {
   out <- xml_text(xml_find_all(x, c, ns))
-  if (all(!is.na(suppressWarnings(as.numeric(out))))) 
+  if (all(!is.na(suppressWarnings(as.numeric(out)))))
     out <- as.numeric(out)
   out
 })
 
-names(data) <- vapply(strsplit(cols, ":"), function(x) x[length(x)], 
+names(data) <- vapply(strsplit(cols, ":"), function(x) x[length(x)],
                       character(1))
-#convert time
-#data$Time <- as.POSIXct(gsub("[[:upper:]]", " ", data$Time), 
-#                        origin = Sys.time() - as.numeric(Sys.time()), format = "%Y-%m-%d %H:%M:%S ")
-f<<-data
+
 data$Time<-as.character(data$Time)
 b<-strsplit(data$Time, "T")
 n<-sapply(b, "[[", 2)
@@ -67,29 +64,32 @@ n<-sapply(b, "[[", 1)
 times<-c(as.matrix(read.table(text = n, sep = ":")) %*% c(60, 1, 1/60))
 
 
-len <- vapply(data, length, numeric(1))
-if (length(unique(len)) > 1) {
-  message("Resolving missing data points...")
-  issues <- names(len[len < max(len, na.rm = TRUE)])
-  
-  .issues <- cols[vapply(issues, function(x) which(grepl(x, 
-                                                         cols)), numeric(1))]
-  nds <- as_list(xml_find_all(x, "//d1:Trackpoint", ns))
-  
-  data<-dealMissingPoints(data, issues, nds)
-  
-  
+    len <- vapply(data, length, numeric(1))
+    if (length(unique(len)) > 1) {
+      message("Resolving missing data points...")
+      issues <- names(len[len < max(len, na.rm = TRUE)])
+
+      .issues <- cols[vapply(issues, function(x) which(grepl(x,
+                                                             cols)), numeric(1))]
+      nds <- as_list(xml_find_all(x, "//d1:Trackpoint", ns))
+
+      data<-dealMissingPoints(data, issues, nds)
+
+    }
+
+    fields<-names(data)
+    for (i in 1:length(fields)){
+      if (!fields[i] %in% c("Time", "DistanceMeters")){
+        data[[i]]<-interpolateMissing(data[[i]])
+      }
+    }
+
+    data$Time<-times-times[1]
+
+    data <- as.data.frame(data)
+
 }
 
-f<<-data
-fields<-names(data)
-for (i in 1:length(fields)){
-  data[[i]]<-interpolateMissing(data[[i]])
-}
-
-data$Time<-times-times[1]
-
-data <- as.data.frame(data)
 
 if("Time" %in% colnames(data) && "DistanceMeters" %in% colnames(data)){
   data$Pace<-1000*data$Time/data$DistanceMeters
@@ -101,6 +101,10 @@ if ("AltitudeMeters" %in% colnames(data)){
   data$AltitudeMetersDiff<-c(0, diff(data$AltitudeMeters))
 }
 
+idx<-which(apply(data,2,sum))
+if(length(idx)>0){
+  data<-data[,-idx]
+}
 return(data)
 
 }

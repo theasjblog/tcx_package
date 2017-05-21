@@ -16,11 +16,18 @@
 #' @export
 
 generateMap <- function(data){
-  
-  if(!"LatitudeDegrees" %in% colnames(data) | !"LongitudeDegrees" %in% colnames(data)){
-    stop("data must contains the columns 'LatitudeDegrees' and 'LongitudeDegrees'")
+
+  if(is.data.frame(data)){
+    if(!"LatitudeDegrees" %in% colnames(data) | !"LongitudeDegrees" %in% colnames(data)){
+      stop("data must contains the columns 'LatitudeDegrees' and 'LongitudeDegrees'")
+    }
+  } else {
+    if(!"LatitudeDegrees" %in% colnames(data[[1]]) | !"LongitudeDegrees" %in% colnames(data[[1]])){
+      stop("data must contains the columns 'LatitudeDegrees' and 'LongitudeDegrees'")
+    }
   }
-  
+
+
 m<-leaflet() %>% addTiles()
 
 if (!is.data.frame(data)){

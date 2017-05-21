@@ -14,29 +14,31 @@
 
 compareSplits<-function(data){
 
+  #if only one in the list then we need a special case of the calculate function
+  #the app right now will crash as the case is handled only for toSum
   toDelta <- c("Time", "DistanceMeters")
   toAvg<-c("HeartRateBpm", "Pace", "Speed", "Watts")
   toSum<- c("AltitudeMetersDiff")
 
-  
+
   res1 <- NULL
   res2 <- NULL
   res3 <- NULL
   if (is.data.frame(data)){
     colRead <- colnames(data)
-    
+
     idx<-which(!toDelta %in% colRead)
     if(length(idx)>0){toDelta<-toDelta[-c(idx)]}
     idx<-which(!toAvg %in% colRead)
     if(length(idx)>0){toAvg<-toAvg[-c(idx)]}
     idx<-which(!toSum %in% colRead)
     if(length(idx)>0){toSum<-toSum[-c(idx)]}
-    
+
     summaryNames <- c(toDelta, toAvg, toSum)
     if(length(summaryNames)<1){
-      stop("Nosummary can be displayed with this data. Check your column names")
+      stop("No summary can be displayed with this data. Check your column names")
     }
-    
+
     if (length(toDelta)>0){
       res1<-apply(data[,colnames(data) %in% toDelta], 2,deltaF)
     }
@@ -46,7 +48,8 @@ compareSplits<-function(data){
     if(length(toSum)>0){
       res3<-c(Altitude=sumF(data[,toSum]))
     }
-    
+
+
     res<-c(res1, res2, res3)
     summaryTable<-as.data.frame(t(res))
     colnames(summaryTable) <- summaryNames
@@ -59,13 +62,13 @@ compareSplits<-function(data){
     if(length(idx)>0){toAvg<-toAvg[-c(idx)]}
     idx<-which(!toSum %in% colRead)
     if(length(idx)>0){toSum<-toSum[-c(idx)]}
-    
+
     summaryNames <- c(toDelta, toAvg, toSum)
     if(length(summaryNames)<1){
       stop("Nosummary can be displayed with this data. Check your column names")
     }
-    
-    
+
+
     lengths<-unlist(lapply(data, function(x){
       dim(x)[1]
     }))
@@ -83,7 +86,7 @@ compareSplits<-function(data){
         if(length(toSum)>0){
           res3<-x[,toDelta]
         }
-        
+
       })
     } else {
       res<-lapply(data, function(x){
@@ -101,10 +104,10 @@ compareSplits<-function(data){
         }
         res<-c(res1, res2, res3)
       })
-      
+
     }
-    
-  
+
+
   summaryTable <- rbindlist(
     lapply(res, FUN = getSummaryVect)
   )
