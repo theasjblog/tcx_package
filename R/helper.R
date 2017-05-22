@@ -30,7 +30,7 @@ split_coord <- function(mystring){
 
 
 removeColumns <-function(data, xVariable, columns){
-  excludeColumns<-c("lat", "lon", "Extensions",
+  excludeColumns<-c("LatitudeDegrees", "LongitudeDegrees", "Extensions",
                     "Position", "AltitudeMetersDiff")
   if (xVariable == "DistanceMeters") {
     excludeColumns<-c(excludeColumns,"Time")
@@ -112,12 +112,21 @@ modifyColumns<- function(summaryTable, adding, selectedColumn){
 doSplit <- function(data, what, splitValues){
   n<-split(data, cut(data[,what], splitValues, include.lowest=TRUE))
   n<-lapply(n,function(x){
-    x$Time<-x$Time-x$Time[1]
-    x$DistanceMeters<-x$DistanceMeters-x$DistanceMeters[1]
-    x$Pace<-1000*x$Time/x$DistanceMeters
-    x$Speed<-0.06*x$DistanceMeters/x$Time
-    x$Pace[1]<-0
-    x$Speed[1]<-0
+    if ("Time" %in% colnames(x)){
+      x$Time<-x$Time-x$Time[1]
+    }
+    if ("DistanceMeters" %in% colnames(x)){
+      x$DistanceMeters<-x$DistanceMeters-x$DistanceMeters[1]
+      x$DistanceMeters[1]<-0
+    }
+    if ("Pace" %in% colnames(x)){
+      x$Pace<-1000*x$Time/x$DistanceMeters
+      x$Pace[1]<-0
+    }
+    if ("Speed" %in% colnames(x)){
+      x$Speed<-0.06*x$DistanceMeters/x$Time
+      x$Speed[1]<-0
+    }
     return(x)
     })
   return(n)

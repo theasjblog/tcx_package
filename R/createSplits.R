@@ -79,5 +79,13 @@ createSplits <- function (data, splitValues,
 }
   
   names(n)<-paste("interval",seq(1,length(n),1), sep = "")
+  for (i in 2:length(n)){
+    if ("LatitudeDegrees" %in% colnames(n[[1]])){
+      if(length(n[[i]]$LatitudeDegrees)>1){
+        n[[i]]$LatitudeDegrees[1] <- n[[i-1]]$LatitudeDegrees[length(n[[i-1]]$LatitudeDegrees)]
+        n[[i]]$LongitudeDegrees[1] <- n[[i-1]]$LongitudeDegrees[length(n[[i-1]]$LongitudeDegrees)]
+      }
+    }
+  }
   return(n)
 }

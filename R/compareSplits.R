@@ -14,8 +14,6 @@
 
 compareSplits<-function(data){
 
-  #if only one in the list then we need a special case of the calculate function
-  #the app right now will crash as the case is handled only for toSum
   toDelta <- c("Time", "DistanceMeters")
   toAvg<-c("HeartRateBpm", "Pace", "Speed", "Watts", "Cadence")
   toSum<- c("AltitudeMetersDiff")
@@ -70,30 +68,10 @@ compareSplits<-function(data){
 
     summaryNames <- c(toDelta, toAvg, toSum)
     if(length(summaryNames)<1){
-      stop("Nosummary can be displayed with this data. Check your column names")
+      stop("No summary can be displayed with this data. Check your column names")
     }
 
 
-    #lengths<-unlist(lapply(data, function(x){
-    #  dim(x)[1]
-    #}))
-    #if(sum(lengths) == length(data)){
-    #  res<-lapply(data, function(x){
-    #    res1<-NULL
-    #    res2<-NULL
-    #    res3<-NULL
-    #    if (length(toDelta)>0){
-    #      res1<-x[,toDelta]
-    #    }
-    #    if(length(toAvg)>0){
-    #      res2<-x[,toAvg]
-    #    }
-    #    if(length(toSum)>0){
-    #      res3<-x[,toSum]
-    #    }
-
-    #  })
-    #} else {
       res<-lapply(data, function(x){
         res1<-NULL
         res2<-NULL
@@ -113,27 +91,21 @@ compareSplits<-function(data){
             res3<-c(res3,sumF(x[,toSum[i]]))
           }
         }
-        #if (length(toDelta)>0){
-        #  res1<-apply(x[,colnames(x) %in% toDelta], 2,deltaF)
-        #}
-        #if (length(toAvg)>0){
-        #  res2<-apply(x[,colnames(x) %in% toAvg], 2,avgF)
-        #}
-        #if (length(toSum)>0){
-        #  res3<-c(Altitude=sumF(x[,toSum]))
-        #}
         res<-c(res1, res2, res3)
       })
 
-    #}
 
 
   summaryTable <- as.data.frame(matrix(unlist(res),nrow=length(res), byrow = TRUE))
   colnames(summaryTable) <- summaryNames
 
   adding<-apply(summaryTable, 2 , mean)
-  adding["Time"]<-sum(summaryTable$Time)
-  adding["DistanceMeters"]<-sum(summaryTable$DistanceMeters)
+  if("Time" %in% colnames(summaryTable)){
+    adding["Time"]<-sum(summaryTable$Time)
+  }
+  if("DistanceMeters" %in% colnames(summaryTable)){
+    adding["DistanceMeters"]<-sum(summaryTable$DistanceMeters)
+  }
   summaryTable<-rbind(summaryTable, as.data.frame(t(adding)))
   Interval<-c(paste("Interval",as.character(seq(1,dim(summaryTable)[1]-1,1), sep=" ")),"Overall")
   summaryTable<-cbind(Interval, summaryTable)

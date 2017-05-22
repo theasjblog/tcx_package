@@ -23,29 +23,32 @@ autoSplits<-function(data, span=NULL, yVariable="DistanceMeters"){
   if (!"Time" %in% colnames(data)){
     "The column 'Time' is not in the data!"
   }
-  if (length(yVariable)>1 | !is.character(yVariable) | !yVariable %in% colnames(data)){
-    "yvariable must be a character vector of length 1 and must be a column name available in data"
-  }
+  
   
   idx<-data$Time[diff(data$Time)==0]
   if (length(idx)==0){
     if (is.null(span)){
       stop("No watch provided splits. Must use the span argument")
     }
+    if (!is.null(yVariable) & (length(yVariable)>1 | !is.character(yVariable) | !yVariable %in% colnames(data))){
+      "yvariable must be a character vector of length 1 and must be a column name available in data"
+    }
   
     splitData<-data.frame(Time = data$Time,
                         y = data[, yVariable])
   
   
-  xz<-splitData[,yVariable]/splitData$Time
+  xz<-splitData$y/splitData$Time
   xz<-as.zoo(xz[-1])
   isPeak<-rollapply(xz,span,function(x) which.min(x)==span)
   isPeak<-which(isPeak)
-  
+  if(length(isPeak) == 0){
+    stop("Cannot find splits. Try to change span or yVariable")
+  }
   n<-data.frame(b=isPeak,
                 diff=c(0,diff(isPeak)),
                 time=data$Time[isPeak],
-                dist=splitData[isPeak,yVariable]
+                dist=splitData$y[isPeak]
                 )
   n$diffTime <- c(0,diff(n$time))
   

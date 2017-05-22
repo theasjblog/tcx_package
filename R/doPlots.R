@@ -5,8 +5,7 @@
 #' list of dataframes generated with gpxAnalyser::createSplits()
 #' @param xVariable (character) the variable to put on the x axis. One of 'DistanceMeters'
 #' or 'Time'
-#' @param columns (character) The matrics to include in the plot. Must be the same name as the column in the dataframe.
-#' Use columns = 'all' to plot all the metrics
+#' @param showMe (character) The metrics to include in the plot. Must be the same name as the column in the dataframe.
 #' @param doFacet (logical) TRUE to plot variables separetly, FALSE to plot
 #' them overlayed
 #' @return
@@ -23,14 +22,18 @@
 #' doPlots(sp, doFacet = TRUE)
 #' @export
 
-doPlots<-function(data, xVariable = c("DistanceMeters","Time")[1],
-                  columns = "all", doFacet = FALSE){
+doPlots<-function(data, xVariable = c("DistanceMeters","Time")[2],
+                  showMe, doFacet = TRUE){
+  
+  showMe<-unique(c(xVarable,showMe))
 
   if (is.data.frame(data)){
-    data<-removeColumns(data, xVariable, columns)
+    idx<-which(colnames(data) %in% showMe)
+    data<-data[,idx]
   } else {
+    idx<-which(colnames(data[[1]]) %in% showMe)
     for (i in 1:length(data)){
-      data[[i]]<-removeColumns(data[[i]], xVariable, columns)
+      data[[i]]<-data[[i]][,idx]
     }
   }
 
