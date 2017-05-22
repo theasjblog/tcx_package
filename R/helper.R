@@ -75,16 +75,12 @@ avgF<-function(x){mean(x)}
 sumF<-function(x){sum(x)}
 
 
-melting<-function (data){
+melting<-function (data, xVariable){
 
   variable<-NULL
 
   columns<-colnames(data)
-  if ("Time" %in% columns){
-    xVariable <- "Time"
-  } else {
-    xVariable <- "DistanceMeters"
-  }
+
   data[xVariable]<-data[xVariable]-min(data[xVariable])
   xymelt <- melt(data, id.vars = xVariable)
 

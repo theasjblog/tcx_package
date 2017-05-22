@@ -24,8 +24,8 @@
 
 doPlots<-function(data, xVariable = c("DistanceMeters","Time")[2],
                   showMe, doFacet = TRUE){
-  
-  showMe<-unique(c(xVarable,showMe))
+
+  showMe<-unique(c(xVariable,showMe))
 
   if (is.data.frame(data)){
     idx<-which(colnames(data) %in% showMe)
@@ -38,9 +38,9 @@ doPlots<-function(data, xVariable = c("DistanceMeters","Time")[2],
   }
 
     if (is.data.frame(data)){
-    selection<-melting(data)
+    selection<-melting(data, xVariable)
   } else {
-    selection<-lapply(data, melting)
+    selection<-lapply(data, function(x){melting(x, xVariable)})
     selection <-setDF(rbindlist(selection, idcol = "Interval"))
   }
 
