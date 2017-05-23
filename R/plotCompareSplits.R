@@ -9,6 +9,9 @@
 #' normalised valued. Raw is the raw data. Norm is the data normalised in the rage 0 to 100,
 #' perc is the variation in percentage from the mean value of all the intervals. If using 'raw'
 #' or 'perc' it is suggested to set doFacet = TRUE
+#' @param xVariable (character) the variable to put on the x axis. One of 'DistanceMeters'
+#' or 'Time'
+#' @param showMe (character) The metrics to include in the plot. Must be the same name as the column in the dataframe.
 #' @return
 #' A ggplot object
 #' @details
@@ -17,18 +20,28 @@
 #' @examples
 #' gpx <- intervalActivity
 #' sp <- autoSplits(gpx)
-#' plotCompareSplit(sp, doFacet=TRUE, type = "raw")
-#' plotCompareSplit(sp, doFacet=TRUE, type = "norm")
-#' plotCompareSplit(sp, doFacet=FALSE, type = "norm")
-#' plotCompareSplit(sp, doFacet=TRUE, type = "perc")
+#' plotCompareSplit(sp, doFacet=TRUE, type = "raw", showMe = colnames(sp[[1]]))
+#' plotCompareSplit(sp, doFacet=TRUE, type = "norm", showMe = colnames(sp[[1]]))
+#' plotCompareSplit(sp, doFacet=FALSE, type = "norm", showMe = colnames(sp[[1]]))
+#' plotCompareSplit(sp, doFacet=TRUE, type = "perc", showMe = colnames(sp[[1]]))
 #' @export
 
 
-plotCompareSplit<-function(data, doFacet = TRUE, type = c("raw", "norm", "perc")[2]){
+plotCompareSplit<-function(data, doFacet = TRUE, type = c("raw", "norm", "perc")[2],
+                           xVariable = "Time", showMe){
   if(is.data.frame(data)){
     stop("Must be a list of splits")
   }
-  summaryTable<-compareSplits(data)
+  
+  showMe<-unique(c(xVariable,showMe))
+  
+  idx<-which(colnames(data[[1]]) %in% showMe)
+    for (i in 1:length(data)){
+      data[[i]]<-data[[i]][,idx]
+    }
+  
+  
+  summaryTable<-compareSplits(data, showMe)
   summaryTable <- summaryTable[seq(1,dim(summaryTable)[1]-1,1),]
   summaryTable$Interval<-as.numeric(summaryTable$Interval)
   

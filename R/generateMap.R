@@ -31,7 +31,7 @@ generateMap <- function(data){
   m<-leaflet() %>% addTiles()
   
   if (!is.data.frame(data)){
-    colors <- c("red", "blue", "green", "white", "black","magenta")
+    colors <- c("red", "blue", "green", "black","magenta")
     colors<- rep(colors,length.out = length(data))
     
     for(i in 1: length(data)){

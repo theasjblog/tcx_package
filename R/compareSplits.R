@@ -2,17 +2,30 @@
 #' @description
 #' Function to compare activity splits
 #' @param data a list of dataframes generated with gpxAnalyser::createSplits()
+#' @param showMe (character) The metrics to include in the plot. Must be the same name as the column in the dataframe.
 #' @return
 #' A dataframe with a summary of comparisons between metrics for the splits
 #' @details
 #' The function accepts a list of dataframes created with createSplits()
 #' @examples
 #' gpx <- intervalActivity
+#' compareSplits(gpx, showMe = colnames(gpx))
 #' sp<-autoSplits(gpx)
-#' compareSplits(sp)
+#' compareSplits(sp, showMe = colnames(sp[[1]]))
 #' @export
 
-compareSplits<-function(data){
+compareSplits<-function(data, showMe){
+  
+  
+  if (is.data.frame(data)){
+    idx<-which(colnames(data) %in% showMe)
+    data<-data[,idx]
+  } else {
+    idx<-which(colnames(data[[1]]) %in% showMe)
+    for (i in 1:length(data)){
+      data[[i]]<-data[[i]][,idx]
+    }
+  }
 
   toDelta <- c("Time", "DistanceMeters")
   toAvg<-c("HeartRateBpm", "Pace", "Speed", "Watts", "Cadence")

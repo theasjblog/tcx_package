@@ -4,8 +4,8 @@
 \alias{doPlots}
 \title{doPlots}
 \usage{
-doPlots(data, xVariable = c("DistanceMeters", "Time")[1], columns = "all",
-  doFacet = FALSE)
+doPlots(data, xVariable = c("DistanceMeters", "Time")[2], showMe,
+  doFacet = TRUE)
 }
 \arguments{
 \item{data}{a dataframe generated with gpxAnalyser::dataLoader() or the
@@ -14,8 +14,7 @@ list of dataframes generated with gpxAnalyser::createSplits()}
 \item{xVariable}{(character) the variable to put on the x axis. One of 'DistanceMeters'
 or 'Time'}
 
-\item{columns}{(character) The matrics to include in the plot. Must be the same name as the column in the dataframe.
-Use columns = 'all' to plot all the metrics}
+\item{showMe}{(character) The metrics to include in the plot. Must be the same name as the column in the dataframe.}
 
 \item{doFacet}{(logical) TRUE to plot variables separetly, FALSE to plot
 them overlayed}
@@ -32,9 +31,9 @@ with createSplits() or dataLoader()
 }
 \examples{
 gpx <- evenActivity
+doPlots(gpx, showMe = colnames(gpx))
+doPlots(gpx, doFacet = TRUE, showMe = colnames(gpx))
 sp<-createSplits(gpx, 2000, type = "everyKm")
-doPlots(gpx)
-doPlots(gpx, doFacet = TRUE)
-doPlots(sp)
-doPlots(sp, doFacet = TRUE)
+doPlots(sp, showMe = colnames(sp[[1]]))
+doPlots(sp, doFacet = TRUE, showMe = colnames(sp[[1]]))
 }

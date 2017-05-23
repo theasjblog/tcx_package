@@ -4,7 +4,8 @@
 \alias{plotCompareSplit}
 \title{plotCompareSplits}
 \usage{
-plotCompareSplit(data, doFacet = TRUE, type = c("raw", "norm", "perc")[2])
+plotCompareSplit(data, doFacet = TRUE, type = c("raw", "norm", "perc")[2],
+  xVariable = "Time", showMe)
 }
 \arguments{
 \item{data}{(list) the list of dataframes generated with
@@ -17,6 +18,11 @@ them overlayed}
 normalised valued. Raw is the raw data. Norm is the data normalised in the rage 0 to 100,
 perc is the variation in percentage from the mean value of all the intervals. If using 'raw'
 or 'perc' it is suggested to set doFacet = TRUE}
+
+\item{xVariable}{(character) the variable to put on the x axis. One of 'DistanceMeters'
+or 'Time'}
+
+\item{showMe}{(character) The metrics to include in the plot. Must be the same name as the column in the dataframe.}
 }
 \value{
 A ggplot object
@@ -31,8 +37,8 @@ with createSplits()
 \examples{
 gpx <- intervalActivity
 sp <- autoSplits(gpx)
-plotCompareSplit(sp, doFacet=TRUE, type = "raw")
-plotCompareSplit(sp, doFacet=TRUE, type = "norm")
-plotCompareSplit(sp, doFacet=FALSE, type = "norm")
-plotCompareSplit(sp, doFacet=TRUE, type = "perc")
+plotCompareSplit(sp, doFacet=TRUE, type = "raw", showMe = colnames(sp[[1]]))
+plotCompareSplit(sp, doFacet=TRUE, type = "norm", showMe = colnames(sp[[1]]))
+plotCompareSplit(sp, doFacet=FALSE, type = "norm", showMe = colnames(sp[[1]]))
+plotCompareSplit(sp, doFacet=TRUE, type = "perc", showMe = colnames(sp[[1]]))
 }

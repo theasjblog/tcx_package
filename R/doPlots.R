@@ -15,11 +15,11 @@
 #' with createSplits() or dataLoader()
 #' @examples
 #' gpx <- evenActivity
+#' doPlots(gpx, showMe = colnames(gpx))
+#' doPlots(gpx, doFacet = TRUE, showMe = colnames(gpx))
 #' sp<-createSplits(gpx, 2000, type = "everyKm")
-#' doPlots(gpx)
-#' doPlots(gpx, doFacet = TRUE)
-#' doPlots(sp)
-#' doPlots(sp, doFacet = TRUE)
+#' doPlots(sp, showMe = colnames(sp[[1]]))
+#' doPlots(sp, doFacet = TRUE, showMe = colnames(sp[[1]]))
 #' @export
 
 doPlots<-function(data, xVariable = c("DistanceMeters","Time")[2],

@@ -4,10 +4,12 @@
 \alias{compareSplits}
 \title{compareSplits}
 \usage{
-compareSplits(data)
+compareSplits(data, showMe)
 }
 \arguments{
 \item{data}{a list of dataframes generated with gpxAnalyser::createSplits()}
+
+\item{showMe}{(character) The metrics to include in the plot. Must be the same name as the column in the dataframe.}
 }
 \value{
 A dataframe with a summary of comparisons between metrics for the splits
@@ -20,6 +22,7 @@ The function accepts a list of dataframes created with createSplits()
 }
 \examples{
 gpx <- intervalActivity
+compareSplits(gpx, showMe = colnames(gpx))
 sp<-autoSplits(gpx)
-compareSplits(sp)
+compareSplits(sp, showMe = colnames(sp[[1]]))
 }

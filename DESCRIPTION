@@ -8,7 +8,7 @@ Description: The package analyses tcx files obtained from Garmin connect.
   be produced to analyse the activity.
 Depends: R (>= 3.3.1)
 License: What license is it under?
-Imports: XML,
+Imports: xml2,
   dplyr,
   data.table,
   ggplot2,

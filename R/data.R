@@ -3,16 +3,14 @@
 #' A dataset resulting from loading a tcx file
 #' of an activity with intervals
 #'
-#' @format A data frame with 3730 rows and 11 variables:
+#' @format A data frame with 4051 rows and 9 variables:
 #' \describe{
 #'   \item{Time}{The recorded time}
-#'   \item{Position}{The lat-lon position}
 #'   \item{AltitudeMeters}{The altitude above sea level}
 #'   \item{DistanceMeters}{The distance done [meters]}
 #'   \item{HeartRateBpm}{The hear rate}
-#'   \item{Extensions}{??}
-#'   \item{lat}{The calculated latitude}
-#'   \item{lon}{The calculated longitude}
+#'   \item{LatitudeDegrees}{The calculated latitude}
+#'   \item{LongitudeDegrees}{The calculated longitude}
 #'   \item{AltitudeMetersDiff}{The elevation gained/lost}
 #'   \item{Pace}{The pace [min/km]}
 #'   \item{Speed}{The speed [km/h]}
@@ -24,16 +22,14 @@
 #' A dataset resulting from loading a tcx file
 #' of an activity without intervals
 #'
-#' @format A data frame with 4324 rows and 11 variables:
+#' @format A data frame with 3207 rows and 11 variables:
 #' \describe{
 #'   \item{Time}{The recorded time}
-#'   \item{Position}{The lat-lon position}
 #'   \item{AltitudeMeters}{The altitude above sea level}
 #'   \item{DistanceMeters}{The distance done [meters]}
 #'   \item{HeartRateBpm}{The hear rate}
-#'   \item{Extensions}{??}
-#'   \item{lat}{The calculated latitude}
-#'   \item{lon}{The calculated longitude}
+#'   \item{LatitudeDegrees}{The calculated latitude}
+#'   \item{LongitudeDegrees}{The calculated longitude}
 #'   \item{AltitudeMetersDiff}{The elevation gained/lost}
 #'   \item{Pace}{The pace [min/km]}
 #'   \item{Speed}{The speed [km/h]}
