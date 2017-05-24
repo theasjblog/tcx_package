@@ -112,6 +112,21 @@ idx<-which(is.na(apply(data,2,sum)))
 if(length(idx)>0){
   data<-data[,-idx]
 }
+
+v<-factor(round(diff(data$Time),digits = 4))
+a<-summary(v)
+thres <- as.numeric(names(a)[a == max(a)])
+newTime<-rep(0, length(data$Time))
+for (i in 2:length(data$Time)){
+  if(data$Time[i] != data$Time[i-1]){
+    newTime[i] <- newTime[i-1]+thres
+  } else if (data$Time[i] == data$Time[i-1]){
+    newTime[i] <- newTime[i-1]
+  }
+}
+data$Time <- newTime
+
+
 return(data)
 
 }

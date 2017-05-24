@@ -5,7 +5,7 @@
 \title{plotCompareSplits}
 \usage{
 plotCompareSplit(data, doFacet = TRUE, type = c("raw", "norm", "perc")[2],
-  xVariable = "Time", showMe)
+  xVariable = "Time", showMe, ftp = NULL)
 }
 \arguments{
 \item{data}{(list) the list of dataframes generated with
@@ -23,6 +23,8 @@ or 'perc' it is suggested to set doFacet = TRUE}
 or 'Time'}
 
 \item{showMe}{(character) The metrics to include in the plot. Must be the same name as the column in the dataframe.}
+
+\item{ftp}{(numeric) Functional threshold power if bike workout, pace [min/km] if run, functional threshold if using HR}
 }
 \value{
 A ggplot object

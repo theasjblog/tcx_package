@@ -4,12 +4,14 @@
 \alias{compareSplits}
 \title{compareSplits}
 \usage{
-compareSplits(data, showMe)
+compareSplits(data, showMe, ftp = NULL)
 }
 \arguments{
 \item{data}{a list of dataframes generated with gpxAnalyser::createSplits()}
 
 \item{showMe}{(character) The metrics to include in the plot. Must be the same name as the column in the dataframe.}
+
+\item{ftp}{(numeric) Functional threshold power if bike workout, pace [min/km] if run, functional threshold if using HR}
 }
 \value{
 A dataframe with a summary of comparisons between metrics for the splits
