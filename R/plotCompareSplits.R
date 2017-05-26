@@ -13,6 +13,8 @@
 #' or 'Time'
 #' @param showMe (character) The metrics to include in the plot. Must be the same name as the column in the dataframe.
 #' @param ftp (numeric) Functional threshold power if bike workout, pace [min/km] if run, functional threshold if using HR
+#' @param ftpType (character) One os 'power', 'pace' or 'HR', to describe what kind of FTP
+#' was provided
 #' @return
 #' A ggplot object
 #' @details
@@ -28,15 +30,20 @@
 #' @export
 
 
-plotCompareSplit<-function(data, doFacet = TRUE, type = c("raw", "norm", "perc")[2],
-                           xVariable = "Time", showMe, ftp = NULL){
+plotCompareSplit<-function(data, doFacet = TRUE, type = c("raw", "norm", "perc")[1],
+                           xVariable = "Time", showMe, ftp = NULL,
+                           ftpType = c("power", "pace", "HR")[1]){
   if(is.data.frame(data)){
     stop("Must be a list of splits")
   }
 
   showMe<-unique(c(xVariable,showMe))
+  if ("AltitudeMetersDiff" %in% showMe){
+    showMe[showMe == "AltitudeMetersDiff"] <- "AltitudeMeters"
+  }
+  
 
-  summaryTable<-compareSplits(data, showMe, ftp)
+  summaryTable<-compareSplits(data, showMe, ftp, ftpType)
 
   if("TSS" %in% colnames(summaryTable)){
     showMe <- c(showMe, "IF", "TSS")
@@ -86,6 +93,7 @@ plotCompareSplit<-function(data, doFacet = TRUE, type = c("raw", "norm", "perc")
   if (doFacet){
     p <- p + facet_grid(variable ~ ., scales = "free")
   }
+  p <- p + theme(legend.position='none')
   p
 
 }

@@ -5,7 +5,7 @@
 \title{doPlots}
 \usage{
 doPlots(data, xVariable = c("DistanceMeters", "Time")[2], showMe,
-  doFacet = TRUE)
+  doFacet = TRUE, splits = NULL)
 }
 \arguments{
 \item{data}{a dataframe generated with gpxAnalyser::dataLoader() or the

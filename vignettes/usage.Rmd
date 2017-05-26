@@ -11,12 +11,107 @@ vignette: >
 
 #Introduction
 
-```{r id0, echo=TRUE, warning=FALSE, message=FALSE}
+The package supplies a set of functionalities to analyse workouts TCX files. Such files can normally be exported from websites such as Garmin Connect or in some cases directly from the device recording it.
+
+##Requirements
+
+* A TCX containg at least time informations. Altough several TCX have been tested, the developer cannot guarantee 100% compatibility with all TCX files
+* For TSS calculations a FTP/LHT is requested
+
+#Complete usage example
+```{r example0, echo=FALSE, warning=FALSE, message=FALSE}
 library(tcxAnalyser)
-
-
+gpx <- intervalActivity
 ```
 
-##2 dashes
+To view the meaning of the arguments, type ??functionName on the R Console, as ??compareSplits
 
-###3 dashes
+##Load data
+```{r example1, echo=TRUE, warning=FALSE, message=FALSE}
+#Do not execute
+# gpx <- dataLoader('path_to_file.tcx')
+```
+
+## View a summary table
+```{r example2, echo=TRUE, warning=FALSE, message=FALSE}
+compareSplits(gpx, showMe = colnames(gpx))
+```
+
+## View a summary table and compute TSS
+```{r example3, echo=TRUE, warning=FALSE, message=FALSE}
+compareSplits(gpx, showMe = colnames(gpx), ftp = 4.1, ftpType = "pace")
+```
+
+## View a map
+```{r example4, echo=TRUE, warning=FALSE, message=FALSE}
+generateMap(gpx)
+```
+
+## Plot the activity metrics
+```{r example5, echo=TRUE, warning=FALSE, message=FALSE}
+doPlots(gpx,xVariable = "Time", showMe = colnames(gpx), doFacet = TRUE)
+```
+
+## Generate splits
+
+### Manually
+```{r example6, echo=TRUE, warning=FALSE, message=FALSE}
+sp <- createSplits(gpx, 1500, "everyKm")
+```
+
+### Assisted
+```{r example7, echo=TRUE, warning=FALSE, message=FALSE}
+proposedSplits <- c(5, 10)
+addSeparator(gpx, splitHere = proposedSplits, xVariable = "Time", yVariable = "DistanceMeters")
+
+proposedSplits <- c(5, 12, 30, 45)
+addSeparator(gpx, splitHere = proposedSplits, xVariable = "Time", yVariable = "DistanceMeters")
+
+sp <- createSplits(gpx, proposedSplits, "thisMin")
+```
+
+### Automatically
+```{r example8, echo=TRUE, warning=FALSE, message=FALSE}
+sp <- autoSplits(gpx)
+```
+
+
+## View a summary table and compute TSS
+```{r example9, echo=TRUE, warning=FALSE, message=FALSE}
+compareSplits(sp, showMe = colnames(sp[[1]]), ftp = 4.1, ftpType = "pace")
+```
+
+## View a map
+```{r example10, echo=TRUE, warning=FALSE, message=FALSE}
+generateMap(sp)
+```
+
+## Plot the activity metrics
+```{r example11, echo=TRUE, warning=FALSE, message=FALSE}
+doPlots(gpx, xVariable = "Time", showMe = colnames(gpx), doFacet = TRUE, splits = proposedSplits)
+```
+
+# Technical description
+
+## Loading data
+
+The function dataLoader() loads the user provided TCX file and returns a data frame with as many rows as data points and as many columns as the variable found in the TCX file:
+
+
+```{r dataLoader0, echo=TRUE, warning=FALSE, message=FALSE}
+#Do not execute
+# gpx <- dataLoader('path_to_file.tcx')
+head(gpx, 5)
+```
+
+The data loader will also perform the following operation:
+
+* Convert time to a minutes only format, starting from 0 at the beginning of the activity
+* Deal with mis-matching variables due to missing data points in one or more channels
+* Interpolate missing data point (i.e dropped power or heart rate for a nimber of seconds/minutes)
+* Compute pace and speed
+* Deal with long chuncks of inactivity, i.e. bike ride coffee break
+
+### Deal with mis-matching variables
+
+

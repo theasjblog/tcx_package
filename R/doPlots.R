@@ -23,9 +23,25 @@
 #' @export
 
 doPlots<-function(data, xVariable = c("DistanceMeters","Time")[2],
-                  showMe, doFacet = TRUE){
+                  showMe, doFacet = TRUE, splits = NULL){
 
   showMe<-unique(c(xVariable,showMe))
+  if ("AltitudeMetersDiff" %in% showMe){
+    showMe[showMe == "AltitudeMetersDiff"] <- "AltitudeMeters"
+  }
+  
+  if(xVariable == "Time"){
+    if ("DistanceMeters" %in% showMe){
+      idx <- which(showMe == "DistanceMeters")
+      showMe <- showMe[-idx]
+    }
+  }
+  if(xVariable == "DistanceMeters"){
+    if ("Time" %in% showMe){
+      idx <- which(showMe == "Time")
+      showMe <- showMe[-idx]
+    }
+  }
 
   if (is.data.frame(data)){
     idx<-which(colnames(data) %in% showMe)
@@ -73,7 +89,12 @@ doPlots<-function(data, xVariable = c("DistanceMeters","Time")[2],
       p <- p + facet_grid(selection$Interval ~ ., scales = "free")
     }
   }
+  
+  if (!is.null(splits)){
+    p <- p + geom_vline(xintercept = splits)
+  }
 
   p <- p + xlab(xVariable) + ylab("Value")
+  p <- p + theme(legend.position='none')
   p
 }

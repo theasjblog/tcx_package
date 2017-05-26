@@ -4,6 +4,8 @@
 #' @param data a list of dataframes generated with gpxAnalyser::createSplits()
 #' @param showMe (character) The metrics to include in the plot. Must be the same name as the column in the dataframe.
 #' @param ftp (numeric) Functional threshold power if bike workout, pace [min/km] if run, functional threshold if using HR
+#' @param ftpType (character) One os 'power', 'pace' or 'HR', to describe what kind of FTP
+#' was provided
 #' @return
 #' A dataframe with a summary of comparisons between metrics for the splits
 #' @details
@@ -15,7 +17,8 @@
 #' compareSplits(sp, showMe = colnames(sp[[1]]))
 #' @export
 
-compareSplits<-function(data, showMe, ftp = NULL){
+compareSplits<-function(data, showMe, ftp = NULL,
+                        ftpType = c("power", "pace", "HR")[1]){
 
 
   if (is.data.frame(data)){
@@ -75,9 +78,9 @@ compareSplits<-function(data, showMe, ftp = NULL){
     s <- data$Time[length(data$Time)]*3600/60
     np <- NULL
     if(!is.null(ftp)){
-    if("Watts" %in% colnames(data)){
+    if("Watts" %in% colnames(data) & ftpType == "power"){
       np <- mean(data$Watts)
-    } else if ("DistanceMeters" %in% colnames(data)){
+    } else if ("DistanceMeters" %in% colnames(data) & ftpType == "pace"){
       if("AltitudeMeters" %in% colnames(data)){
         grade <- 100 * (data$AltitudeMeters[length(data$AltitudeMeters)] - data$AltitudeMeters[1]) / data$DistanceMeters[length(data$DistanceMeters)]
         perc <- ifelse(grade > 0, 0.035, 0.18)
@@ -88,7 +91,7 @@ compareSplits<-function(data, showMe, ftp = NULL){
       }
       ftp <- 60/ftp
       np <- 60/gap
-    } else if ("HeartRateBpm" %in% colnames(data)){
+    } else if ("HeartRateBpm" %in% colnames(data) & ftpType == "HR"){
       np <- mean(data$HeartRateBpm)
     }
       }
@@ -138,9 +141,9 @@ compareSplits<-function(data, showMe, ftp = NULL){
         s <- x$Time[length(x$Time)]*3600/60
         np <- NULL
         if(!is.null(ftp)){
-          if("Watts" %in% colnames(x)){
+          if("Watts" %in% colnames(x) & ftpType == "power"){
             np <- mean(x$Watts)
-          } else if ("DistanceMeters" %in% colnames(x)){
+          } else if ("DistanceMeters" %in% colnames(x) & ftpType == "pace"){
             if("AltitudeMeters" %in% colnames(x)){
               grade <- 100 * (x$AltitudeMeters[length(x$AltitudeMeters)] - x$AltitudeMeters[1]) / x$DistanceMeters[length(x$DistanceMeters)]
               perc <- ifelse(grade > 0, 0.035, 0.18)
@@ -151,7 +154,7 @@ compareSplits<-function(data, showMe, ftp = NULL){
             }
             ftp <- 60/ftp
             np <- 60/gap
-          } else if ("HeartRateBpm" %in% colnames(x)){
+          } else if ("HeartRateBpm" %in% colnames(x) & ftpType == "HR"){
             np <- mean(x$HeartRateBpm)
           }
         }

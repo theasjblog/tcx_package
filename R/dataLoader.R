@@ -37,19 +37,24 @@ if (any(grepl("Position", cols))) {
   cols <- cols[!grepl("Position", cols)]
   tmp <- suppressWarnings(xml_name(xml_children(xml_find_one(x,
                                                              "//d1:Position", ns))))
-  cols <- c(cols, paste0("//d1:", tmp))
+  if(length(tmp != 0)){
+    cols <- c(cols, paste0("//d1:", tmp))
+    }
 }
 if (any(grepl("Extensions", cols))) {
   cols <- cols[!grepl("Extensions", cols)]
   tmp <- suppressWarnings(xml_name(xml_children(xml_find_all(x,
                                                              "//ns3:TPX", ns))))
-  cols <- c(cols, paste0("//ns3:", tmp))
+  if(length(tmp != 0)){
+    cols <- c(cols, paste0("//ns3:", tmp))
+  }
+  
 }
 cols<-unique(cols)
 trcols <- paste0("//d1:Trackpoint", cols)
 message("Reading .tcx file...")
 data <- lapply(trcols, function(c) {
-  out <- xml_text(xml_find_all(x, c, ns))
+  out <- suppressWarnings(xml_text(xml_find_all(x, c, ns)))
   if (all(!is.na(suppressWarnings(as.numeric(out)))))
     out <- as.numeric(out)
   out
@@ -113,9 +118,12 @@ if(length(idx)>0){
   data<-data[,-idx]
 }
 
-v<-factor(round(diff(data$Time),digits = 4))
+
+v <- round(diff(data$Time),digits = 4)
+v <- v[v != 0]
+v<-factor(v)
 a<-summary(v)
-thres <- as.numeric(names(a)[a == max(a)])
+thres <- as.numeric(names(a)[a == max(a)])[1]
 newTime<-rep(0, length(data$Time))
 for (i in 2:length(data$Time)){
   if(data$Time[i] != data$Time[i-1]){

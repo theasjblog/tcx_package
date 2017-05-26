@@ -106,6 +106,7 @@ modifyColumns<- function(summaryTable, adding, selectedColumn){
 }
 
 doSplit <- function(data, what, splitValues){
+  data$OriginalIdx <- seq(1,dim(data)[1],1)
   n<-split(data, cut(data[,what], splitValues, include.lowest=TRUE))
   n<-lapply(n,function(x){
     if ("Time" %in% colnames(x)){
@@ -118,14 +119,20 @@ doSplit <- function(data, what, splitValues){
     if ("Pace" %in% colnames(x)){
       x$Pace<-1000*x$Time/x$DistanceMeters
       x$Pace[1]<-0
+      x$Pace[is.na(x$Pace)] <- 0
+      x$Pace[is.infinite(x$Pace)] <- 0
     }
     if ("Speed" %in% colnames(x)){
       x$Speed<-0.06*x$DistanceMeters/x$Time
       x$Speed[1]<-0
+      x$Speed[is.na(x$Speed)] <- 0
+      x$Speed[is.infinite(x$Speed)] <- 0
     }
     return(x)
     })
+
   return(n)
+
 }
 
 
