@@ -4,8 +4,7 @@
 \alias{addSeparator}
 \title{addSeparator}
 \usage{
-addSeparator(data, splitHere, xVariable = "Time",
-  yVariable = "DistanceMeters")
+addSeparator(data, splitHere, xVariable = "Time", yVariable = "Distance")
 }
 \arguments{
 \item{data}{a dataframe generated with gpxAnalyser::dataLoader()}

@@ -29,30 +29,30 @@
 
 createSplits <- function (data, splitValues,
                           type = c("everyKm","thisKm", "everyMin", "thisMin")[1]){
-  
-  if("DistanceMeters" %in% colnames(data) & any(diff(data$DistanceMeters)<0)){
-    message("This workout is likely a swim. It will be split as such")
-    n <- split(data, seq(nrow(data)))
-  } else {
+
+#  if("Distance" %in% colnames(data) & any(diff(data$Distance)<0)){
+#    message("This workout is likely a swim. It will be split as such")
+#    n <- split(data, seq(nrow(data)))
+#  } else {
   #Km is in meters
   #time is in minutes
   if (type == "everyKm"){
-    if(!"DistanceMeters" %in% colnames(data)){
-      stop("Cannot split by distance as the column 'DistanceMeters' is not present")
+    if(!"Distance" %in% colnames(data)){
+      stop("Cannot split by distance as the column 'Distance' is not present")
     }
-    nIntervals<-floor(max(data$DistanceMeters)/splitValues)+1
+    nIntervals<-floor(max(data$Distance)/splitValues)+1
     splitValues <- seq(0,splitValues*nIntervals,splitValues)
-    what <- "DistanceMeters"
+    what <- "Distance"
   }
   if (type == "thisKm"){
-    if(!"DistanceMeters" %in% colnames(data)){
-      stop("Cannot split by distance as the column 'DistanceMeters' is not present")
+    if(!"Distance" %in% colnames(data)){
+      stop("Cannot split by distance as the column 'Distance' is not present")
     }
     if (splitValues[1] != 0){splitValues <-c(0, splitValues)}
-    if (splitValues[length(splitValues)] < max(data$DistanceMeters)){
-      splitValues <-c(splitValues, max(data$DistanceMeters))
+    if (splitValues[length(splitValues)] < max(data$Distance)){
+      splitValues <-c(splitValues, max(data$Distance))
     }
-    what <- "DistanceMeters"
+    what <- "Distance"
   }
 
   if (type == "everyMin"){
@@ -76,16 +76,19 @@ createSplits <- function (data, splitValues,
 
 
   n<-doSplit(data, what, splitValues = unique(splitValues))
-}
-  
+#}
+
   names(n)<-paste("interval",seq(1,length(n),1), sep = "")
-  for (i in 2:length(n)){
-    if ("LatitudeDegrees" %in% colnames(n[[1]])){
-      if(length(n[[i]]$LatitudeDegrees)>1){
-        n[[i]]$LatitudeDegrees[1] <- n[[i-1]]$LatitudeDegrees[length(n[[i-1]]$LatitudeDegrees)]
-        n[[i]]$LongitudeDegrees[1] <- n[[i-1]]$LongitudeDegrees[length(n[[i-1]]$LongitudeDegrees)]
+  if(length(n)>1){
+    for (i in 2:length(n)){
+      if ("LatitudeDegrees" %in% colnames(n[[1]])){
+        if(length(n[[i]]$LatitudeDegrees)>1){
+          n[[i]]$LatitudeDegrees[1] <- n[[i-1]]$LatitudeDegrees[length(n[[i-1]]$LatitudeDegrees)]
+          n[[i]]$LongitudeDegrees[1] <- n[[i-1]]$LongitudeDegrees[length(n[[i-1]]$LongitudeDegrees)]
+        }
       }
     }
   }
+
   return(n)
 }

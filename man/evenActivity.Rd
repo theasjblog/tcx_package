@@ -7,12 +7,12 @@
 \format{A data frame with 3207 rows and 11 variables:
 \describe{
   \item{Time}{The recorded time}
-  \item{AltitudeMeters}{The altitude above sea level}
-  \item{DistanceMeters}{The distance done [meters]}
-  \item{HeartRateBpm}{The hear rate}
+  \item{Elevation}{The altitude above sea level}
+  \item{Distance}{The distance done [meters]}
+  \item{Heart rate}{The hear rate}
   \item{LatitudeDegrees}{The calculated latitude}
   \item{LongitudeDegrees}{The calculated longitude}
-  \item{AltitudeMetersDiff}{The elevation gained/lost}
+  \item{Elevation gain}{The elevation gained/lost}
   \item{Pace}{The pace [min/km]}
   \item{Speed}{The speed [km/h]}
 }}

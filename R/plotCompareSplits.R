@@ -23,25 +23,29 @@
 #' @examples
 #' gpx <- intervalActivity
 #' sp <- autoSplits(gpx)
-#' plotCompareSplit(sp, doFacet=TRUE, type = "raw", showMe = colnames(sp[[1]]))
-#' plotCompareSplit(sp, doFacet=TRUE, type = "norm", showMe = colnames(sp[[1]]))
-#' plotCompareSplit(sp, doFacet=FALSE, type = "norm", showMe = colnames(sp[[1]]))
-#' plotCompareSplit(sp, doFacet=TRUE, type = "perc", showMe = colnames(sp[[1]]))
+#' plotCompareSplit(sp, doFacet=TRUE, type = "raw")
+#' plotCompareSplit(sp, doFacet=TRUE, type = "norm")
+#' plotCompareSplit(sp, doFacet=FALSE, type = "norm")
+#' plotCompareSplit(sp, doFacet=TRUE, type = "perc")
 #' @export
 
 
 plotCompareSplit<-function(data, doFacet = TRUE, type = c("raw", "norm", "perc")[1],
-                           xVariable = "Time", showMe, ftp = NULL,
+                           xVariable = "Time", showMe = NULL, ftp = NULL,
                            ftpType = c("power", "pace", "HR")[1]){
   if(is.data.frame(data)){
     stop("Must be a list of splits")
   }
 
-  showMe<-unique(c(xVariable,showMe))
-  if ("AltitudeMetersDiff" %in% showMe){
-    showMe[showMe == "AltitudeMetersDiff"] <- "AltitudeMeters"
+  if (is.null(showMe)){
+    showMe <- colnames(data[[1]])
+    showMe <- showMe[!showMe %in% c("LatitudeDegrees", "LongitudeDegrees")]
   }
-  
+  showMe<-unique(c(xVariable,showMe))
+  if ("Elevation gain" %in% showMe){
+    showMe[showMe == "Elevation gain"] <- "Elevation"
+  }
+
 
   summaryTable<-compareSplits(data, showMe, ftp, ftpType)
 
@@ -93,7 +97,8 @@ plotCompareSplit<-function(data, doFacet = TRUE, type = c("raw", "norm", "perc")
   if (doFacet){
     p <- p + facet_grid(variable ~ ., scales = "free")
   }
-  p <- p + theme(legend.position='none')
+  p <- p + theme_bw() + theme(legend.position='none')
+    
   p
 
 }

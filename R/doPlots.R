@@ -8,6 +8,7 @@
 #' @param showMe (character) The metrics to include in the plot. Must be the same name as the column in the dataframe.
 #' @param doFacet (logical) TRUE to plot variables separetly, FALSE to plot
 #' them overlayed
+#' @param sp (list) the list of frame of splits, if plotting splits
 #' @return
 #' A ggplot object
 #' @details
@@ -15,60 +16,81 @@
 #' with createSplits() or dataLoader()
 #' @examples
 #' gpx <- evenActivity
-#' doPlots(gpx, showMe = colnames(gpx))
-#' doPlots(gpx, doFacet = TRUE, showMe = colnames(gpx))
+#' doPlots(gpx)
+#' doPlots(gpx, doFacet = TRUE)
 #' sp<-createSplits(gpx, 2000, type = "everyKm")
-#' doPlots(sp, showMe = colnames(sp[[1]]))
-#' doPlots(sp, doFacet = TRUE, showMe = colnames(sp[[1]]))
+#' doPlots(gpx, sp = sp)
 #' @export
 
-doPlots<-function(data, xVariable = c("DistanceMeters","Time")[2],
-                  showMe, doFacet = TRUE, splits = NULL){
+doPlots<-function(data, xVariable = c("Distance","Time")[2],
+                  showMe = NULL, doFacet = TRUE, sp = NULL){
 
-  showMe<-unique(c(xVariable,showMe))
-  if ("AltitudeMetersDiff" %in% showMe){
-    showMe[showMe == "AltitudeMetersDiff"] <- "AltitudeMeters"
+
+  if (is.data.frame(data)){
+    if (is.null(showMe)){
+      showMe <- colnames(data)
+    }
+    idx<-which(colnames(data) %in% showMe)
+
+  } else {
+    stop("Must be a data frame")
   }
-  
+
+
+  showMe <- showMe[!showMe %in% c("LatitudeDegrees", "LongitudeDegrees")]
+
+
+  if ("Elevation gain" %in% showMe){
+    showMe[showMe == "Elevation gain"] <- "Elevation"
+  }
+
   if(xVariable == "Time"){
-    if ("DistanceMeters" %in% showMe){
-      idx <- which(showMe == "DistanceMeters")
+    if ("Distance" %in% showMe){
+      idx <- which(showMe == "Distance")
       showMe <- showMe[-idx]
     }
   }
-  if(xVariable == "DistanceMeters"){
+  if(xVariable == "Distance"){
     if ("Time" %in% showMe){
       idx <- which(showMe == "Time")
       showMe <- showMe[-idx]
     }
   }
+  showMe<-unique(c(xVariable,showMe))
+  idx <- which(colnames(data) %in% showMe)
+ 
+  if (length(idx)>0){
+    data <- data[,idx]
+  }
+  
+  
 
-  if (is.data.frame(data)){
-    idx<-which(colnames(data) %in% showMe)
-    data<-data[,idx]
-  } else {
-    idx<-which(colnames(data[[1]]) %in% showMe)
-    for (i in 1:length(data)){
-      data[[i]]<-data[[i]][,idx]
+
+    if(!is.null(sp)){
+
+      splits <- getSplitsValues(data, sp, xVariable)
+      toKeep <- notToHide(sp)
+      varSave <- data[,xVariable]
+      temp <- data
+      data[,] <- NA
+      data[toKeep,] <- temp[toKeep,]
+      data[,xVariable] <- varSave
     }
+  idx <- which(diff(data[,xVariable]) == 0)
+  if (length(idx)>0){
+    data <- data[-idx,]
   }
-
-    if (is.data.frame(data)){
-    selection<-melting(data, xVariable)
-  } else {
-    selection<-lapply(data, function(x){melting(x, xVariable)})
-    selection <-setDF(rbindlist(selection, idcol = "Interval"))
-  }
+  selection<-melting(data, xVariable)
 
   value <-NULL
   variable<-NULL
   value_norm<-NULL
 
-  if (is.data.frame(data)){
     if (doFacet){
       p<-ggplot(data = selection,aes(x = selection[xVariable], y = as.numeric(value),
                                      group = variable, color = variable)) +
         geom_line() +
+        #geom_area(aes(fill = variable)) +
         facet_grid(variable ~ ., scales = "free")
 
     } else {
@@ -76,25 +98,14 @@ doPlots<-function(data, xVariable = c("DistanceMeters","Time")[2],
                                      group = variable, color = variable)) +
         geom_line()
     }
-  } else {
-    if (doFacet){
-      p<-ggplot(data = selection,aes(x = selection[xVariable], y = as.numeric(value),
-                                     group = variable, color = variable)) +
-        geom_line()
-      p <- p + facet_grid(variable ~ selection$Interval, scales = "free")
-    } else {
-      p<-ggplot(data = selection,aes(x = selection[xVariable], y = as.numeric(value_norm),
-                                     group = variable, color = variable)) +
-        geom_line()
-      p <- p + facet_grid(selection$Interval ~ ., scales = "free")
-    }
-  }
-  
-  if (!is.null(splits)){
-    p <- p + geom_vline(xintercept = splits)
+
+  if (!is.null(sp)){
+    p <- p + geom_vline(xintercept = splits, color = "black")
   }
 
-  p <- p + xlab(xVariable) + ylab("Value")
-  p <- p + theme(legend.position='none')
+  p <- p + xlab(xVariable) + ylab("Value") +
+    theme_bw() +
+    theme(legend.position='none')
+    
   p
 }

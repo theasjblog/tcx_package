@@ -25,7 +25,6 @@ NULL
 #' @export
 
 dataLoader <- function(datapath){
-definedColumns<-columnExpected()
 
 x <- read_xml(datapath)
 ns <- xml_ns(x)
@@ -48,7 +47,7 @@ if (any(grepl("Extensions", cols))) {
   if(length(tmp != 0)){
     cols <- c(cols, paste0("//ns3:", tmp))
   }
-  
+
 }
 cols<-unique(cols)
 trcols <- paste0("//d1:Trackpoint", cols)
@@ -68,6 +67,9 @@ b<-strsplit(data$Time, "T")
 n<-sapply(b, "[[", 2)
 b<-strsplit(n, "\\.")
 n<-sapply(b, "[[", 1)
+b<-strsplit(n, "Z")
+n<-sapply(b, "[[", 1)
+
 times<-c(as.matrix(read.table(text = n, sep = ":")) %*% c(60, 1, 1/60))
 
 
@@ -83,11 +85,13 @@ times<-c(as.matrix(read.table(text = n, sep = ":")) %*% c(60, 1, 1/60))
       data<-dealMissingPoints(data, issues, nds)
 
     }
+    
+    
 
     fields<-names(data)
     for (i in 1:length(fields)){
       if (fields[i] == "DistanceMeters"){
-        if(any(data[[i]] %%1 != 0)){
+        if(any(data[[i]][!is.na(data[[i]])] %%1 != 0)){
         data[[i]]<-interpolateMissing(data[[i]])
         }
       }else{
@@ -95,11 +99,40 @@ times<-c(as.matrix(read.table(text = n, sep = ":")) %*% c(60, 1, 1/60))
       }
     }
 
+    
     data$Time<-times-times[1]
-
     data <- as.data.frame(data)
+    
+    
+    idx<-which(is.na(apply(data,2,sum)))
+    rowsRemove <- NULL
+    if(length(idx)>0){
+      for (i in 1:length(idx)){
+        rowsRemove <- c(rowsRemove, which(is.na(data[,idx[i]])))
+      }
+    }
+    if (!is.null(rowsRemove)){
+      data <- data[-rowsRemove,]
+    }
 
 
+    #fix pauses
+    if (!all(diff(data$DistanceMeters[data$DistanceMeters!=0]) %% min(data$DistanceMeters[data$DistanceMeters!=0]) == 0)){#exclude swims in pool
+      v <- round(diff(data$Time), digits = 4)
+      v <- v[v != 0]
+      v <- factor(v)
+      a <- summary(v)
+      thres <- as.numeric(names(a)[a == max(a)])[1]
+      newTime <- rep(0, length(data$Time))
+      for (i in 2:length(data$Time)){
+        if (data$Time[i] != data$Time[i-1]){
+          newTime[i] <- newTime[i-1]+thres
+        } else if (data$Time[i] == data$Time[i-1]){
+          newTime[i] <- newTime[i-1]
+        }
+      }
+      data$Time <- newTime
+    }
 
 
 if("Time" %in% colnames(data) && "DistanceMeters" %in% colnames(data)){
@@ -112,27 +145,15 @@ if("Time" %in% colnames(data) && "DistanceMeters" %in% colnames(data)){
 if ("AltitudeMeters" %in% colnames(data)){
   data$AltitudeMetersDiff<-c(0, diff(data$AltitudeMeters))
 }
-
-idx<-which(is.na(apply(data,2,sum)))
-if(length(idx)>0){
-  data<-data[,-idx]
-}
+    
 
 
-v <- round(diff(data$Time),digits = 4)
-v <- v[v != 0]
-v<-factor(v)
-a<-summary(v)
-thres <- as.numeric(names(a)[a == max(a)])[1]
-newTime<-rep(0, length(data$Time))
-for (i in 2:length(data$Time)){
-  if(data$Time[i] != data$Time[i-1]){
-    newTime[i] <- newTime[i-1]+thres
-  } else if (data$Time[i] == data$Time[i-1]){
-    newTime[i] <- newTime[i-1]
-  }
-}
-data$Time <- newTime
+
+newNames <- unlist(lapply(seq_along(data),function(i){displayNames(colnames(data)[i])}))
+colnames(data) <- newNames
+
+
+
 
 
 return(data)

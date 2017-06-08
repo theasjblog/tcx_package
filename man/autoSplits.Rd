@@ -4,14 +4,10 @@
 \alias{autoSplits}
 \title{splitsFinder}
 \usage{
-autoSplits(data, span = NULL, yVariable = "DistanceMeters")
+autoSplits(data)
 }
 \arguments{
 \item{data}{a dataframe generated with gpxAnalyser::dataLoader()}
-
-\item{span}{(numeric) a numeric value. The smaller the values, the more splits you get (normally)}
-
-\item{yVariable}{(numeric) the variable (column name) to put on the y axis}
 }
 \value{
 A list of dataframes, one for each split
@@ -26,6 +22,4 @@ The function accepts a data frame created with dataLoader()
 \examples{
 gpx <- intervalActivity
 autoSp <- autoSplits(gpx) #to use Garmin splits
-# If the activity had no Garmin splits:
-# autoSp <- autoSplits(gpx, span = 25) 
 }

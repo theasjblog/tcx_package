@@ -4,8 +4,8 @@
 \alias{compareSplits}
 \title{compareSplits}
 \usage{
-compareSplits(data, showMe, ftp = NULL, ftpType = c("power", "pace",
-  "HR")[1])
+compareSplits(data, showMe = NULL, ftp = NULL, ftpType = c("power",
+  "pace", "HR")[1])
 }
 \arguments{
 \item{data}{a list of dataframes generated with gpxAnalyser::createSplits()}
@@ -28,7 +28,7 @@ The function accepts a list of dataframes created with createSplits()
 }
 \examples{
 gpx <- intervalActivity
-compareSplits(gpx, showMe = colnames(gpx))
+compareSplits(gpx)
 sp<-autoSplits(gpx)
-compareSplits(sp, showMe = colnames(sp[[1]]))
+compareSplits(sp)
 }

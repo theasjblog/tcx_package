@@ -18,13 +18,15 @@ The package supplies a set of functionalities to analyse workouts TCX files. Suc
 * A TCX containg at least time informations. Altough several TCX have been tested, the developer cannot guarantee 100% compatibility with all TCX files
 * For TSS calculations a FTP/LHT is requested
 
-#Complete usage example
+#Quick reference
+
+The following session provides a breif overview of the main package functions. To view functions details and a complete list of arguments, use the R command *??functionName*
 ```{r example0, echo=FALSE, warning=FALSE, message=FALSE}
 library(tcxAnalyser)
 gpx <- intervalActivity
 ```
 
-To view the meaning of the arguments, type ??functionName on the R Console, as ??compareSplits
+
 
 ##Load data
 ```{r example1, echo=TRUE, warning=FALSE, message=FALSE}
@@ -34,12 +36,12 @@ To view the meaning of the arguments, type ??functionName on the R Console, as ?
 
 ## View a summary table
 ```{r example2, echo=TRUE, warning=FALSE, message=FALSE}
-compareSplits(gpx, showMe = colnames(gpx))
+compareSplits(gpx)
 ```
 
 ## View a summary table and compute TSS
 ```{r example3, echo=TRUE, warning=FALSE, message=FALSE}
-compareSplits(gpx, showMe = colnames(gpx), ftp = 4.1, ftpType = "pace")
+compareSplits(gpx, ftp = 4.1, ftpType = "pace")
 ```
 
 ## View a map
@@ -62,10 +64,10 @@ sp <- createSplits(gpx, 1500, "everyKm")
 ### Assisted
 ```{r example7, echo=TRUE, warning=FALSE, message=FALSE}
 proposedSplits <- c(5, 10)
-addSeparator(gpx, splitHere = proposedSplits, xVariable = "Time", yVariable = "DistanceMeters")
+addSeparator(gpx, splitHere = proposedSplits, xVariable = "Time", yVariable = "Distance")
 
 proposedSplits <- c(5, 12, 30, 45)
-addSeparator(gpx, splitHere = proposedSplits, xVariable = "Time", yVariable = "DistanceMeters")
+addSeparator(gpx, splitHere = proposedSplits, xVariable = "Time", yVariable = "Distance")
 
 sp <- createSplits(gpx, proposedSplits, "thisMin")
 ```
@@ -78,7 +80,8 @@ sp <- autoSplits(gpx)
 
 ## View a summary table and compute TSS
 ```{r example9, echo=TRUE, warning=FALSE, message=FALSE}
-compareSplits(sp, showMe = colnames(sp[[1]]), ftp = 4.1, ftpType = "pace")
+compareSplits(sp, ftp = 4.1, ftpType = "pace")
+
 ```
 
 ## View a map
@@ -88,14 +91,29 @@ generateMap(sp)
 
 ## Plot the activity metrics
 ```{r example11, echo=TRUE, warning=FALSE, message=FALSE}
-doPlots(gpx, xVariable = "Time", showMe = colnames(gpx), doFacet = TRUE, splits = proposedSplits)
+doPlots(gpx, xVariable = "Time", doFacet = TRUE, sp = sp)
 ```
+
+## Plot a comparison of the splits
+```{r example12, echo=TRUE, warning=FALSE, message=FALSE}
+plotCompareSplit(sp)
+```
+
+## Eliminate splits
+```{r example13, echo=TRUE, warning=FALSE, message=FALSE}
+gpx <- evenActivity
+sp <- autoSplits(gpx)
+doPlots(gpx, xVariable = "Time", doFacet = TRUE, sp = sp)
+spReduced <- purgeSplits(sp, splitsToEliminate = c(1,3,5))
+doPlots(gpx, xVariable = "Time", doFacet = TRUE, sp = spReduced)
+```
+
 
 # Technical description
 
 ## Loading data
 
-The function dataLoader() loads the user provided TCX file and returns a data frame with as many rows as data points and as many columns as the variable found in the TCX file:
+The function dataLoader() loads the user provided TCX file and returns a data frame with as many rows as data points and as many columns as the variables found in the TCX file:
 
 
 ```{r dataLoader0, echo=TRUE, warning=FALSE, message=FALSE}
@@ -108,10 +126,192 @@ The data loader will also perform the following operation:
 
 * Convert time to a minutes only format, starting from 0 at the beginning of the activity
 * Deal with mis-matching variables due to missing data points in one or more channels
-* Interpolate missing data point (i.e dropped power or heart rate for a nimber of seconds/minutes)
+* Interpolate missing data point (i.e dropped power or heart rate for a number of seconds/minutes)
 * Compute pace and speed
 * Deal with long chuncks of inactivity, i.e. bike ride coffee break
 
 ### Deal with mis-matching variables
+In some activity (especially swimming), columns read from the tcx file can have different lengths. The package attempts to recover the missing values in the shorter columns. The missing rows are replaced by NAs. After this take place, the package will attempt to fill in the missing numbers.
+
+## Replace missing numbers
+Missing numbers are replaced following the rules:
+
+* Missing number with row index = 1. The NA is replaced by a 0
+* Missing number with index = length(variable column). The Na is replaced with the closest non NA value moving upwards into the variable column
+* All other cases. Missing numbers are replaced using linear interpolation between the closest non NAs
+
+The three cases are summarised in the following example
+
+```{r replaceNAs, echo=TRUE, warning=FALSE, message=FALSE}
+myVariable <- c(NA,1,2,3,NA,NA,NA,7,NA)
+idx <- which(is.na(myVariable))
+idxNoNa <- which(!is.na(myVariable))
+#replace first NA
+if (1 %in% idx){
+  myVariable[1] <- 0
+  idx <- idx[-1]
+}
+#replace last NA
+if (length(myVariable) %in% idx){
+  myVariable[length(myVariable)] <- myVariable[idxNoNa[length(idxNoNa)]]
+  idx <- idx[-length(idx)]
+}
+#replace other NAs
+if(length(idx>0)){
+  newValues <- seq(from = myVariable[idx[1]-1],
+                   to = myVariable[idx[length(idx)]+1],
+                   length = length(idx)+2)
+  myVariable[idx] <- newValues[seq(2,length(newValues)-1,1)]
+}
+myVariable
+```
+
+## Deal with long pauses
+Long pauses can artificially inflate the duration of an activity. Such long pauses can occour, for instance, when stoppoing for red light, or when stopping for a coffee break. Even if the watch goes in auto-pause, or you press STOP, the time elapsed before the activity resumes is still counted towards the total activity elapsed time. This is because the time is not recorded as starting from 0 and then incrementing, and pausing while in STOP mode, but instead every event is recorded based on the timestamp. That is, if the activity starts at 8:00am, then you ride non stop for 2h before pressing the STOP button, then you have 30 min break, then you resume the ride for other 2h, the total time will be calculated as follow:
+
+* Start time: 8:00am
+* Pause start 10:00am
+* Pause end: 10:30am
+* Ride end: 12:30pm
+* Total ride time: 12:30pm - 8:00am = 2.5h
+
+This will clearly affect your pace/speed, any other average (Watts, cadence, HR etc) and the activity TSS.
+
+The package will eliminate the pause by replacing the gap with the most frequent time interval for the rest of the activity (tipically 1s). This replacement is not performed in pool-based swims, as doing so will force all the intervals (lengths) to be computed with the same time, making the activity an artificially perfectly constant swim. Open water swim do not have this problem, as the lapping/recording method is not based on pool lengths, but on standard time/distance mode, as for riding or cycling activities.
+
+## Generate splits
+
+### Automatic splitting
+The easiest way to generate splits is to use the function *autoSplits()*. The function is based on how Garmin reacts to the Lap event during an activity, either a manually trigger lap or an automatic lap. When a lap is triggered, Garmin duplicates the set of data at the point of lapping as can be observed in this activity data frame extract:
+
+```{r autoSp, echo=FALSE, warning=FALSE, message=FALSE}
+gpx <- intervalActivity
+idx <- which(diff(intervalActivity$Time)==0)
+gpx[seq(idx[1]-3,idx[1]+3,1),seq(1,4,1)]
+```
+
+Identifying these points allows to easily splits an activity without having to provide extra-parameters to the function *createSplits()*
+
+### Create splits
+The function *createSplits()* is used to manually split the activity. Splits can be created based on time or distance, and can be created of all equal lengths in time or distance, or completely manual. Consider the following examples:
+```{r manualSp, echo=TRUE, warning=FALSE, message=FALSE}
+gpx <- evenActivity
+sp <- createSplits(gpx, 2500, "everyKm")
+doPlots(data = gpx, xVariable = "Distance", sp = sp)
+sp <- createSplits(gpx, c(1500,3450,5000), "thisKm")
+doPlots(data = gpx, xVariable = "Distance", sp = sp)
+sp <- createSplits(gpx, 15, "everyMin")
+doPlots(data = gpx, xVariable = "Time", sp = sp)
+sp <- createSplits(gpx, c(3,12,30), "thisMin")
+doPlots(data = gpx, xVariable = "Time", sp = sp)
+```
+
+### Assisted splitting
+This function can assist to identify the exact point to use to generate splits. Consider the following example:
+
+```{r assistedSp0, echo=TRUE, warning=FALSE, message=FALSE}
+gpx <- intervalActivity
+proposedSplits <- c(15, 17)
+addSeparator(gpx, proposedSplits, xVariable = "Time", yVariable = "Distance")
+```
+
+In this kind of plot Time/Distance, every change of pace can be visualised as a change in the slope of the red line. The aim is to have the blue lines to cross the points where the change of slope can be seen:
+
+```{r assistedSp1, echo=FALSE, warning=FALSE, message=FALSE}
+sp <- autoSplits(gpx)
+proposedSplits <- tcxAnalyser:::getSplitsValues(gpx, sp, "Time")
+proposedSplits <- round(proposedSplits, digits = 1)
+```
+
+```{r assistedSp2, echo=TRUE, warning=FALSE, message=FALSE}
+proposedSplits
+addSeparator(gpx, proposedSplits, xVariable = "Time", yVariable = "Distance")
+sp <- createSplits(gpx, proposedSplits, "thisMin")
+doPlots(data = gpx, xVariable = "Time", sp = sp)
+```
+
+Other combinations of x/y variables can be chosen, such as Time/Watts. However, the x variable must be either 'Time' or 'Distance', as the *createSplits()* function requires the split values to be given in either 'Time' or 'Distance'.
+
+## TSS
+
+Training Stress Score (TSS) is a registered term brought to the sport community by TrainingPeaks, and developed by Dr. Andy Coggan and Hunter Allen. In simple term, it is a measure of how hard your workout was, considering your level of fitness and the duration of the workout. It is calculated in different ways for different sports and/or for different type of data available. Before discussing TSS, we need to define Functional Threshold Power (FTP).
+
+### FTP
+
+First of all a disclaimer. There are several definition of FTP, and for the sake of simplicity, here I adhere to the definition available in TrainingPeaks. Also, I will call FTP also the pace threshold for running (normally otherwise referred to FTPa) and the lactate heart rate treshold (LHRT). I will also not discuss how to measure them. There are plenty of resource available on-line (I suggest to look for the tests recommended by Joe Friel).
+
+If TSS is a measure of a specific workout intensity, FTP is a measure of the overall level of fitness at a spefic time of your preparation. For instance, it can be the average power you can output in 1h hard ride.
+
+## Computing TSS
+
+The general equation for TSS is:
+
+$$TSS = 100 * \frac{s*IF^2}{3600}$$
+
+where *s* is the activity time in seconds and IF is the Intensity Factor, defined as:
+
+$$IF = \frac{NP}{FTP}$$
+
+Where NP is the normalised power, and FTP is the functional threshold power.
+
+The concept of normalised power was developed in cycling, but it can be extended to other metrics such as pace and heart rate. The normalised power is calculated as a rolling average over the activity, with a time step of 30s. That is, the activity is divided into a number of 30s intervals, and the normalised power is computed for all of them. The normalised power is defined as:
+
+$$NP = \sqrt[4]{\frac{\sum_{i=1}^N{\overline{NPs}^4}}{N}}$$
+
+where $\overline{NPs}$ are the averages of power for all the 30s activity blocks.
+
+A simple calculation shows that an activity of 1h where the NP is exactly the FTP has TSS equal to 100.
+
+You might have notice that for running and swimming the FTP is given in pace. Because the harder the pace, the lower its value, the FTP and the NPs need to be converted to speed before computing the IF, otherwise one would have lower TSS for faster run of same duration. Consider for instance three activities of duration 3600s and performed by an athlete with FTP of 4:00min/km. The three activities has NP of 3:30min/km, 4:00min/km and 4:30min/Km respectively. One would expect the TSS to decrease going from the first to the last activity, as the pace decreases while all other parameters remain constant. However, if we use the raw data we have:
+
+$$TSS_{1} = 100*\frac{3600*(\frac{3.5}{4})^2}{3600} = 76.56$$
+$$TSS_{2} = 100*\frac{3600*(\frac{4}{4})^2}{3600} = 100$$
+$$TSS_{3} = 100*\frac{3600*(\frac{3.5}{4})^2}{3600} = 126.56$$
+To convert both FTP and NP to speed (km/h) from pace (min/km), we need to do 60/FTP and 60/NP. This gives:
+
+$$IF_{pace} = \frac{\frac{60}{NP}}{\frac{60}{FTP}} = \frac{FTP}{NP}$$
+
+With this in mind, we can now verify that the three activities give the expected trend of TSS:
+
+$$TSS_{1} = 100*\frac{3600*(\frac{4}{3.5})^2}{3600} = 130.61$$
+$$TSS_{2} = 100*\frac{3600*(\frac{4}{4})^2}{3600} = 100$$
+$$TSS_{3} = 100*\frac{3600*(\frac{4}{4.5})^2}{3600} = 79.01$$
+
+One final consideration must be made on the calculation of NP for running. The NP was introduced in cycling to normalise the effort put on different rides based on the power output, so that short and hard efforts can be compared with long and steady efforts. In running, we are all familiar with a simple fact: going uphill will slow you down, or at least will require more effort to keep the pace, and going down hill will make you faster. This said, how can we compare hilly runs with flat runs? This comparison is made possible with the introduction of the grade adjusted pace (GAP), also known as normalised graded pace (NGP). This metric, first introduced by C.T.M. Davies (The Physiological Responses to Running Downhill. Journal of Applied Physiology 32, 187–194 (1974)), allows to take into consideration the effect of hill. In his study, Davies found that on average runners slow down by 3.5% every 1% of uphill incline, while speed up by 1.8% every 1% of downhill incline.
+
+Considering Davies findings, when calculating NP for the running pace, the pace is always adjusted with the course elevation profile a that point of the activity. This is possible only if the analysed file contains elevation information. If it does not, then the non-normalised pace is used.
+
+### On comparing TSS results from this analyser and TrainingPeaks
+
+The TSS calculated here are in general good agreement with the TSS calculated by TrainingPeaks. However, for some activity there can be a significant difference. This can be due to:
+
+* My error. Altough I checked with all possible references, it is possible that there is some mistake in my equations. If you spot one, please let me know and I will fix it
+* Different way of dealing with missing data points. I replace missing data with linearly interpolated ones. I have no way to tell how TrainingPeaks deals with missing data
+* Different smoothing algorithm. I always compute the NP on 30s blocks of raw data. I do not know if TrainingPeaks discard some of the blocks or if it applies some smoothing filters to the data before computing NP
+* Different NP calculation, especially for running pace and GAP. I use the numbers reported by Davis in teh cited paper, however I am aware that other papers have been published reporting either different numbers or some paqrticular cases, such as extreme slopes. I am aware that Strava implements some of these latest findings, such as the ones reported by A.E. Minetti (Energy cost of walking and running at extreme uphill and downhill slopes. Journal of Applied Physiology 93, 1039–1046 (2002))
+
+# Useful links
+
+* TrainingPeaks on TSS
+
+https://www.trainingpeaks.com/blog/what-is-tss/
+
+https://help.trainingpeaks.com/hc/en-us/articles/204071944-Training-Stress-Scores-Explained
+
+* On the effect of running up-hill (GAP)
+
+https://link.springer.com/article/10.1007/BF00423214
+
+* Analysis and use of cycling training data
+
+https://link.springer.com/article/10.2165%2F11317840-000000000-00000
+
+* Validation of mathematical model for cycling power
+
+http://journals.humankinetics.com/doi/pdf/10.1123/jab.14.3.276
+
+* Andy Coggan on training with power meter (has info about TSS, IF, NP)
+
+https://www.researchgate.net/publication/237251583_Training_and_racing_using_a_power_meter_an_introduction
 
 

@@ -24,7 +24,7 @@
 #' @export
 
 #split on time only?
-addSeparator<-function(data, splitHere, xVariable="Time", yVariable = "DistanceMeters"){
+addSeparator<-function(data, splitHere, xVariable="Time", yVariable = "Distance"){
   if (!is.data.frame(data)){
     stop("data must be a data frame")
   }
@@ -37,14 +37,17 @@ addSeparator<-function(data, splitHere, xVariable="Time", yVariable = "DistanceM
   if (length(yVariable)>1 | !is.character(yVariable) | !yVariable %in% colnames(data)){
     "yvariable must be a character vector of length 1 and must be a column name available in data"
   }
-  
+
   plotData<-data.frame(x=data[,xVariable],
                        y=data[,yVariable])
-  
+
   #needed to pass R CMD Check
   x <- NULL
   y <- NULL
-  
-  p<-ggplot(plotData, aes(x, y, color = "red"))+geom_line()+geom_vline(xintercept = splitHere, colour = "blue")
+
+  p<-ggplot(plotData, aes(x, y, color = "red"))+geom_line()+geom_vline(xintercept = splitHere, colour = "blue") +
+    xlab(xVariable) + ylab(yVariable) +
+    theme_bw() +
+    theme(legend.position='none')
   print(p)
 }

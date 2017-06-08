@@ -12,157 +12,96 @@
 #' The function accepts a list of dataframes created with createSplits()
 #' @examples
 #' gpx <- intervalActivity
-#' compareSplits(gpx, showMe = colnames(gpx))
+#' compareSplits(gpx)
 #' sp<-autoSplits(gpx)
-#' compareSplits(sp, showMe = colnames(sp[[1]]))
+#' compareSplits(sp)
 #' @export
 
-compareSplits<-function(data, showMe, ftp = NULL,
+compareSplits<-function(data, showMe = NULL, ftp = NULL,
                         ftpType = c("power", "pace", "HR")[1]){
 
 
+
+
   if (is.data.frame(data)){
+    if (is.null(showMe)){
+      showMe <- colnames(data)
+    }
     idx<-which(colnames(data) %in% showMe)
     data<-data[,idx]
   } else {
+    if (is.null(showMe)){
+      showMe <- colnames(data[[1]])
+    }
     idx<-which(colnames(data[[1]]) %in% showMe)
     for (i in 1:length(data)){
       data[[i]]<-data[[i]][,idx]
     }
   }
 
-  toDelta <- c("Time", "DistanceMeters")
-  toAvg<-c("HeartRateBpm", "Pace", "Speed", "Watts", "Cadence")
-  toSum<- c("AltitudeMetersDiff")
+  toDelta <- c("Time", "Distance")
+  toAvg<-c("Heart rate", "Pace", "Speed", "Power", "Cadence")
+  toSum<- c("Elevation gain")
 
 
-  res1 <- NULL
-  res2 <- NULL
-  res3 <- NULL
+
   if (is.data.frame(data)){
-    colRead <- colnames(data)
 
-    idx<-which(!toDelta %in% colRead)
-    if(length(idx)>0){toDelta<-toDelta[-c(idx)]}
-    idx<-which(!toAvg %in% colRead)
-    if(length(idx)>0){toAvg<-toAvg[-c(idx)]}
-    idx<-which(!toSum %in% colRead)
-    if(length(idx)>0){toSum<-toSum[-c(idx)]}
+    filtering <- selectDeltaSumAvg(df = data, toDelta = toDelta, toAvg = toAvg, toSum = toSum)
+    toDelta <- filtering$toDelta
+    toSum <- filtering$toSum
+    toAvg <- filtering$toAvg
+    summaryNames <- filtering$summaryNames
 
-    summaryNames <- c(toDelta, toAvg, toSum)
-    if(length(summaryNames)<1){
-      stop("No summary can be displayed with this data. Check your column names")
-    }
-
-    if (length(toDelta)>0){
-      for (i in 1:length(toDelta)){
-        res1<-c(res1,deltaF(data[,toDelta[i]]))
-      }
-    }
-    if(length(toAvg)>0){
-      for (i in 1:length(toAvg)){
-        res2<-c(res2,avgF(data[,toAvg[i]]))
-      }
-    }
-    if(length(toSum)>0){
-      for (i in 1:length(toSum)){
-        res3<-c(res3,sumF(data[,toSum[i]]))
-      }
-    }
-
-    res<-c(res1, res2, res3)
+    res <- computeDeltaAvgSum(df = data, toDelta = toDelta, toSum = toSum, toAvg = toAvg)
     summaryTable<-as.data.frame(t(res))
     colnames(summaryTable) <- summaryNames
 
-
-    s <- data$Time[length(data$Time)]*3600/60
-    np <- NULL
     if(!is.null(ftp)){
-    if("Watts" %in% colnames(data) & ftpType == "power"){
-      np <- mean(data$Watts)
-    } else if ("DistanceMeters" %in% colnames(data) & ftpType == "pace"){
-      if("AltitudeMeters" %in% colnames(data)){
-        grade <- 100 * (data$AltitudeMeters[length(data$AltitudeMeters)] - data$AltitudeMeters[1]) / data$DistanceMeters[length(data$DistanceMeters)]
-        perc <- ifelse(grade > 0, 0.035, 0.18)
-        if (grade == 0){perc <- 0}
-        gap <- mean(data$Pace) - mean(data$Pace)*(perc*grade)
+      s <- data$Time[length(data$Time)]*3600/60
+      ifs <- computeNp(df = data, ftp = ftp, ftpType = ftpType)
+
+
+      if ("Distance" %in% colnames(data) & ftpType == "pace"){
+
+        TSSs <- 100*30*(ifs)^2/3600
+        summaryTable$IF <- mean(ifs)
+        summaryTable$TSS <- sum(TSSs)
       } else {
-        gap <- mean(data$Pace)
+        if(!is.null(ifs)){
+          TSSs <- 100*30*(ifs)^2/3600
+          summaryTable$IF <- mean(ifs)
+          summaryTable$TSS <- sum(TSSs)
+
+        }
       }
-      ftp <- 60/ftp
-      np <- 60/gap
-    } else if ("HeartRateBpm" %in% colnames(data) & ftpType == "HR"){
-      np <- mean(data$HeartRateBpm)
-    }
-      }
-    if(!is.null(np)){
-      summaryTable$IF <- np/ftp
-      summaryTable$TSS <- 100*s*(summaryTable$IF)^2/3600
     }
 
   } else {
 
-    colRead <- colnames(data[[1]])
-    idx<-which(!toDelta %in% colRead)
-    if(length(idx)>0){toDelta<-toDelta[-c(idx)]}
-    idx<-which(!toAvg %in% colRead)
-    if(length(idx)>0){toAvg<-toAvg[-c(idx)]}
-    idx<-which(!toSum %in% colRead)
-    if(length(idx)>0){toSum<-toSum[-c(idx)]}
-
-    summaryNames <- c(toDelta, toAvg, toSum)
-    if(length(summaryNames)<1){
-      stop("No summary can be displayed with this data. Check your column names")
-    }
+    filtering <- selectDeltaSumAvg(df = data[[1]], toDelta = toDelta, toAvg = toAvg, toSum = toSum)
+    toDelta <- filtering$toDelta
+    toSum <- filtering$toSum
+    toAvg <- filtering$toAvg
+    summaryNames <- filtering$summaryNames
 
 
-      res<-lapply(data, function(x){
+    res<-lapply(data, function(x){
 
-        res1<-NULL
-        res2<-NULL
-        res3<-NULL
-        if (length(toDelta)>0){
-          for (i in 1:length(toDelta)){
-            res1<-c(res1,deltaF(x[,toDelta[i]]))
-          }
-        }
-        if(length(toAvg)>0){
-          for (i in 1:length(toAvg)){
-            res2<-c(res2,avgF(x[,toAvg[i]]))
-          }
-        }
-        if(length(toSum)>0){
-          for (i in 1:length(toSum)){
-            res3<-c(res3,sumF(x[,toSum[i]]))
-          }
-        }
-        res<-c(res1, res2, res3)
+      res <- computeDeltaAvgSum(df = x, toDelta = toDelta, toSum = toSum, toAvg = toAvg)
 
-        s <- x$Time[length(x$Time)]*3600/60
-        np <- NULL
         if(!is.null(ftp)){
-          if("Watts" %in% colnames(x) & ftpType == "power"){
-            np <- mean(x$Watts)
-          } else if ("DistanceMeters" %in% colnames(x) & ftpType == "pace"){
-            if("AltitudeMeters" %in% colnames(x)){
-              grade <- 100 * (x$AltitudeMeters[length(x$AltitudeMeters)] - x$AltitudeMeters[1]) / x$DistanceMeters[length(x$DistanceMeters)]
-              perc <- ifelse(grade > 0, 0.035, 0.18)
-              if (grade == 0){perc <- 0}
-              gap <- mean(x$Pace) - mean(x$Pace)*(perc*grade)
-            } else {
-              gap <- mean(x$Pace)
-            }
-            ftp <- 60/ftp
-            np <- 60/gap
-          } else if ("HeartRateBpm" %in% colnames(x) & ftpType == "HR"){
-            np <- mean(x$HeartRateBpm)
+          s <- x$Time[length(x$Time)]*3600/60
+          ifs <- computeNp(df = x, ftp = ftp, ftpType = ftpType)
+
+        if(!is.null(ifs)){
+          if ("Distance" %in% colnames(x) & ftpType == "pace"){
+
           }
-        }
-        if(!is.null(np)){
-          IF <- np/ftp
-          TSS <- 100*s*(IF)^2/3600
-          res <- c(res,IF, TSS)
-        }
+          IF <- mean(ifs)
+          TSS <- 100*30*(ifs)^2/3600
+          res <- c(res,IF, sum(TSS))
+        }}
         return(res)
 
       })
@@ -174,15 +113,23 @@ compareSplits<-function(data, showMe, ftp = NULL,
   }
   colnames(summaryTable) <- summaryNames
 
-  adding<-apply(summaryTable, 2 , mean)
+  temp <- rbindlist(data)
+  adding <- apply(temp, 2 , mean)
+  idx <- which(names(adding) %in% colnames(summaryTable))
+  adding <- adding[idx]
+
+
   if("Time" %in% colnames(summaryTable)){
     adding["Time"]<-sum(summaryTable$Time)
   }
-  if("DistanceMeters" %in% colnames(summaryTable)){
-    adding["DistanceMeters"]<-sum(summaryTable$DistanceMeters)
+  if("Distance" %in% colnames(summaryTable)){
+    adding["Distance"]<-sum(summaryTable$Distance)
   }
   if("TSS" %in% colnames(summaryTable)){
     adding["TSS"]<-sum(summaryTable$TSS)
+  }
+  if("IF" %in% colnames(summaryTable)){
+    adding["IF"]<-mean(summaryTable$IF)
   }
   summaryTable<-rbind(summaryTable, as.data.frame(t(adding)))
   Interval<-c(paste("Interval",as.character(seq(1,dim(summaryTable)[1]-1,1), sep=" ")),"Overall")

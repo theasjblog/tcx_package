@@ -5,8 +5,8 @@
 \title{plotCompareSplits}
 \usage{
 plotCompareSplit(data, doFacet = TRUE, type = c("raw", "norm", "perc")[1],
-  xVariable = "Time", showMe, ftp = NULL, ftpType = c("power", "pace",
-  "HR")[1])
+  xVariable = "Time", showMe = NULL, ftp = NULL, ftpType = c("power",
+  "pace", "HR")[1])
 }
 \arguments{
 \item{data}{(list) the list of dataframes generated with
@@ -43,8 +43,8 @@ with createSplits()
 \examples{
 gpx <- intervalActivity
 sp <- autoSplits(gpx)
-plotCompareSplit(sp, doFacet=TRUE, type = "raw", showMe = colnames(sp[[1]]))
-plotCompareSplit(sp, doFacet=TRUE, type = "norm", showMe = colnames(sp[[1]]))
-plotCompareSplit(sp, doFacet=FALSE, type = "norm", showMe = colnames(sp[[1]]))
-plotCompareSplit(sp, doFacet=TRUE, type = "perc", showMe = colnames(sp[[1]]))
+plotCompareSplit(sp, doFacet=TRUE, type = "raw")
+plotCompareSplit(sp, doFacet=TRUE, type = "norm")
+plotCompareSplit(sp, doFacet=FALSE, type = "norm")
+plotCompareSplit(sp, doFacet=TRUE, type = "perc")
 }

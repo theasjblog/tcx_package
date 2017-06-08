@@ -29,49 +29,18 @@ split_coord <- function(mystring){
 
 
 
-removeColumns <-function(data, xVariable, columns){
-  excludeColumns<-c("LatitudeDegrees", "LongitudeDegrees", "Extensions",
-                    "Position", "AltitudeMetersDiff")
-  if (xVariable == "DistanceMeters") {
-    excludeColumns<-c(excludeColumns,"Time")
-  } else {
-    excludeColumns<-c(excludeColumns,"DistanceMeters")
-  }
-  if (length(columns)==1 && columns=="all"){
-    if(is.data.frame(data)){
-      columns<-colnames(data)
-    } else {
-      columns<-colnames(data[[1]])
-    }
-    columns <- columns[!columns %in% excludeColumns]
-  }
-  res<- data[, columns]
-
-}
-
-
 getSummary <- function(df){
-  data.frame(Altitude = sum(df$AltitudeMeters),
-             Distance = df$DistanceMeters[length(df$DistanceMeters)],
-             HR = mean(df$HeartRateBpm),
+  data.frame(Altitude = sum(df$Elevation),
+             Distance = df$Distance[length(df$Distance)],
+             HR = mean(df[,"Heart rate"]),
              Pace = mean(df$InstPace[df$InstPace !=0]),
              Speed = mean(df$InstSpeed[df$InstSpeed !=0])
   )
 }
 
-getSummaryVect <- function(vect){
-  data.frame(Time = vect["Time"],
-             Distance = vect["DistanceMeters"],
-             HR = vect["HeartRateBpm"],
-             Pace = vect["Pace"],
-             Speed = vect["Speed"],
-             Altitude = vect["Altitude"]
-  )
-}
 
-
-deltaF<-function(x){max(x)-min(x)}
-avgF<-function(x){mean(x)}
+deltaF<-function(x){if (max(x) != min(x)){max(x)-min(x)}else{x}}
+avgF<-function(x){mean(x[x!=0])}
 sumF<-function(x){sum(x)}
 
 
@@ -80,6 +49,7 @@ melting<-function (data, xVariable){
   variable<-NULL
 
   columns<-colnames(data)
+
 
   data[xVariable]<-data[xVariable]-min(data[xVariable])
   xymelt <- melt(data, id.vars = xVariable)
@@ -99,7 +69,8 @@ melting<-function (data, xVariable){
 }
 
 modifyColumns<- function(summaryTable, adding, selectedColumn){
-  summaryTable[,selectedColumn] <- c(summaryTable[1, selectedColumn], diff(summaryTable[, selectedColumn]))
+  summaryTable[,selectedColumn] <- c(summaryTable[1, selectedColumn],
+                                     diff(summaryTable[, selectedColumn]))
   adding[selectedColumn] <- sum(summaryTable[, selectedColumn])
   return(list(summaryTable = summaryTable,
               adding = adding))
@@ -108,23 +79,43 @@ modifyColumns<- function(summaryTable, adding, selectedColumn){
 doSplit <- function(data, what, splitValues){
   data$OriginalIdx <- seq(1,dim(data)[1],1)
   n<-split(data, cut(data[,what], splitValues, include.lowest=TRUE))
+  b <- unlist(lapply(n,function(x){length(x$Time)}))
+  idx <- which(b == 0)
+  if (length(idx) >0){
+    n <- n[-idx]
+  }
+
+  if (length(n)>1){
+    for (i in 2:length(n)){
+      n[[i]] <- rbind(n[[i-1]][length(n[[i-1]]$Time),],n[[i]])
+    }
+  }
+  
+
   n<-lapply(n,function(x){
     if ("Time" %in% colnames(x)){
-      x$Time<-x$Time-x$Time[1]
+      if(length(x$Time)>1){
+        x$Time<-x$Time-x$Time[1]
+      }
     }
-    if ("DistanceMeters" %in% colnames(x)){
-      x$DistanceMeters<-x$DistanceMeters-x$DistanceMeters[1]
-      x$DistanceMeters[1]<-0
+    if ("Distance" %in% colnames(x)){
+      if(length(x$Distance)>1){
+        x$Distance <- x$Distance-x$Distance[1]
+      }
     }
     if ("Pace" %in% colnames(x)){
-      x$Pace<-1000*x$Time/x$DistanceMeters
-      x$Pace[1]<-0
+      x$Pace<-1000*x$Time/x$Distance
+      if(length(x$Time)>1){
+        x$Pace[1]<-0
+      }
       x$Pace[is.na(x$Pace)] <- 0
       x$Pace[is.infinite(x$Pace)] <- 0
     }
     if ("Speed" %in% colnames(x)){
-      x$Speed<-0.06*x$DistanceMeters/x$Time
-      x$Speed[1]<-0
+      x$Speed<-0.06*x$Distance/x$Time
+      if(length(x$Time)>1){
+        x$Speed[1]<-0
+      }
       x$Speed[is.na(x$Speed)] <- 0
       x$Speed[is.infinite(x$Speed)] <- 0
     }
@@ -133,16 +124,6 @@ doSplit <- function(data, what, splitValues){
 
   return(n)
 
-}
-
-
-columnExpected<-function(){
-  list(timeColumn="Time",
-       distanceColumn="DistanceMeters",
-       altitudeColumn="AltutideMeters",
-       positionColumn = "Position",
-       HColumn = "HeartRateBpm"
-  )
 }
 
 
@@ -227,10 +208,158 @@ interpolateMissing <-function(data){
     start <- missing[start]
     start<-c(missing[1],start)
     for (i in 1:length(start)){
-      data[seq(start[i], end[i],1)] <- seq(from = data[start[i]-1], to = data[end[i]+1],length = (end[i]-start[i])+1)
+      data[seq(start[i], end[i],1)] <- seq(from = data[start[i]-1],
+                                           to = data[end[i]+1],
+                                           length = (end[i]-start[i])+1)
     }
   }
   }
   }
   return(data)
+}
+
+getSplitsValues <- function(gpx, sp, xVariable){
+  splitsIdx <- unlist(lapply(sp, function(x){
+    c(x$OriginalIdx[1],x$OriginalIdx[length(x$OriginalIdx)])
+  }))
+  splitsIdx <- unique(splitsIdx)
+  splitsIdx <- splitsIdx[-1]
+  if (xVariable == "Time"){
+    splitsValues <- gpx$Time[splitsIdx]
+  } else if(xVariable == "Distance"){
+    splitsValues <- gpx$Distance[splitsIdx]
+  }
+  return(splitsValues)
+}
+
+
+notToHide <- function(sp){
+  res <- rbindlist(sp)
+  res <- as.vector(res$OriginalIdx)
+}
+
+displayNames <- function(x){
+  switch(x,
+         HeartRateBpm = "Heart rate",
+         AltitudeMeters = "Elevation",
+         AltitudeMetersDiff = "Elevation gain",
+         Watts = "Power",
+         DistanceMeters = "Distance",
+         x)
+}
+
+
+computeNp <- function(df, ftp, ftpType){
+  ifs <- NULL
+  if("Power" %in% colnames(df) & ftpType == "power"){
+    temp <- createSplits(df, 0.5, "everyMin")
+    means <- unlist(lapply(temp, function(b){mean(b$Power)}))
+    means <- means[!is.na(means)]
+    means <- means[!is.infinite(means)]
+    ifs <- means/ftp
+
+  } else if ("Distance" %in% colnames(df) & ftpType == "pace"){
+    if("Elevation" %in% colnames(df)){
+
+      temp <- createSplits(df, 0.5, "everyMin")
+      means <- unlist(lapply(temp, function(b){
+        if(length(b$Distance) >= 5){
+          b$Distance <- seq(from = 0,
+                            to = max(b$Distance),
+                            len = length(b$Distance))
+          b$Time <- seq(from = 0,
+                            to = max(b$Time),
+                            len = length(b$Time))
+          
+          b$Pace <- 1000*b$Time/b$Distance
+          b$Speed <- 0.06*b$Distance/b$Time
+          b$Pace[1] <- 0
+          b$Speed[1] <- 0
+          grade <- 100 * (b$Elevation[length(b$Elevation)] - b$Elevation[1]) / b$Distance[length(b$Distance)]
+          perc <- ifelse(grade > 0, 0.035, 0.018)
+          if (grade == 0){perc <- 0}
+          gap <- b$Pace - b$Pace*(perc*grade)
+        } else {
+          gap <- NA
+        }
+        return(mean(gap))
+        }))
+      means <- means[!is.na(means)]
+      means <- means[!is.infinite(means)]
+      ifs <- ftp/means
+
+
+
+    } else {
+
+      temp <- createSplits(df, 0.5, "everyMin")
+      means <- unlist(lapply(temp, function(b){mean(b$Pace[b$Pace!=0])}))
+      means <- means[!is.na(means)]
+      means <- means[!is.infinite(means)]
+      ifs <- ftp/means
+
+    }
+
+
+
+  } else if ("Heart rate" %in% colnames(df) & ftpType == "HR"){
+    temp <- createSplits(df, 0.5, "everyMin")
+    means <- unlist(lapply(temp, function(b){mean(b[,"Heart rate"])}))
+    means <- means[!is.na(means)]
+    means <- means[!is.infinite(means)]
+    ifs <- means/ftp
+
+  }
+  if(!is.null(ifs)){
+    ifs <- ifs[!is.na(ifs)]
+    ifs <- ifs[!is.infinite(ifs)]
+  }
+  
+  return(ifs)
+}
+
+selectDeltaSumAvg <- function(df, toDelta, toAvg, toSum){
+  colRead <- colnames(df)
+  idx<-which(!toDelta %in% colRead)
+  if(length(idx)>0){toDelta<-toDelta[-c(idx)]}
+  idx<-which(!toAvg %in% colRead)
+  if(length(idx)>0){toAvg<-toAvg[-c(idx)]}
+  idx<-which(!toSum %in% colRead)
+  if(length(idx)>0){toSum<-toSum[-c(idx)]}
+
+  summaryNames <- c(toDelta, toAvg, toSum)
+  if(length(summaryNames)<1){
+    stop("No summary can be displayed with this data. Check your column names")
+  }
+
+  return(list(toDelta = toDelta,
+              toAvg = toAvg,
+              toSum = toSum,
+              summaryNames = summaryNames))
+
+}
+
+
+computeDeltaAvgSum <- function(df, toDelta, toSum, toAvg){
+  res1 <- NULL
+  res2 <- NULL
+  res3 <- NULL
+  if (length(toDelta)>0){
+    for (i in 1:length(toDelta)){
+      res1<-c(res1,deltaF(df[,toDelta[i]]))
+    }
+  }
+  if(length(toAvg)>0){
+    for (i in 1:length(toAvg)){
+      res2<-c(res2,avgF(df[,toAvg[i]]))
+    }
+  }
+  if(length(toSum)>0){
+    for (i in 1:length(toSum)){
+      res3<-c(res3,sumF(df[,toSum[i]]))
+    }
+  }
+
+  res<-c(res1, res2, res3)
+  return(res)
 }

@@ -4,8 +4,8 @@
 \alias{doPlots}
 \title{doPlots}
 \usage{
-doPlots(data, xVariable = c("DistanceMeters", "Time")[2], showMe,
-  doFacet = TRUE, splits = NULL)
+doPlots(data, xVariable = c("Distance", "Time")[2], showMe = NULL,
+  doFacet = TRUE, sp = NULL)
 }
 \arguments{
 \item{data}{a dataframe generated with gpxAnalyser::dataLoader() or the
@@ -18,6 +18,8 @@ or 'Time'}
 
 \item{doFacet}{(logical) TRUE to plot variables separetly, FALSE to plot
 them overlayed}
+
+\item{sp}{(list) the list of frame of splits, if plotting splits}
 }
 \value{
 A ggplot object
@@ -31,9 +33,8 @@ with createSplits() or dataLoader()
 }
 \examples{
 gpx <- evenActivity
-doPlots(gpx, showMe = colnames(gpx))
-doPlots(gpx, doFacet = TRUE, showMe = colnames(gpx))
+doPlots(gpx)
+doPlots(gpx, doFacet = TRUE)
 sp<-createSplits(gpx, 2000, type = "everyKm")
-doPlots(sp, showMe = colnames(sp[[1]]))
-doPlots(sp, doFacet = TRUE, showMe = colnames(sp[[1]]))
+doPlots(gpx, sp = sp)
 }
