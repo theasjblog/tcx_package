@@ -4,7 +4,7 @@
 \name{evenActivity}
 \alias{evenActivity}
 \title{Example of activity not containing intervals.}
-\format{A data frame with 3207 rows and 11 variables:
+\format{A data frame with 5192 rows and 10 variables:
 \describe{
   \item{Time}{The recorded time}
   \item{Elevation}{The altitude above sea level}
@@ -15,12 +15,13 @@
   \item{Elevation gain}{The elevation gained/lost}
   \item{Pace}{The pace [min/km]}
   \item{Speed}{The speed [km/h]}
+  \item{GAP}{The gradient adjusted pace [min/Km]}
 }}
 \usage{
 evenActivity
 }
 \description{
 A dataset resulting from loading a tcx file
-of an activity without intervals
+of an activity without intervals, i.e. a steady effort activity.
 }
 \keyword{datasets}

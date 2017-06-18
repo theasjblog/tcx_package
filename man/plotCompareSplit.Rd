@@ -9,16 +9,19 @@ plotCompareSplit(data, doFacet = TRUE, type = c("raw", "norm", "perc")[1],
   "pace", "HR")[1])
 }
 \arguments{
-\item{data}{(list) the list of dataframes generated with
-gpxAnalyser::createSplits()}
+\item{data}{(list) the list of dataframes for the activity splits}
 
 \item{doFacet}{(logical) TRUE to plot variables separetly, FALSE to plot
 them overlayed}
 
 \item{type}{(character) One of "raw", "norm" or "perc" to plot differently
-normalised valued. Raw is the raw data. Norm is the data normalised in the rage 0 to 100,
-perc is the variation in percentage from the mean value of all the intervals. If using 'raw'
-or 'perc' it is suggested to set doFacet = TRUE}
+normalised valued.
+\itemize{
+\item 'raw' is the raw data
+\item 'norm' is the data normalised in the rage 0 to 100
+\item 'perc' is the variation in percentage from the mean value of all the intervals
+}
+If using 'raw' or 'perc' it is suggested to set doFacet = TRUE}
 
 \item{xVariable}{(character) the variable to put on the x axis. One of 'DistanceMeters'
 or 'Time'}
@@ -37,8 +40,8 @@ A ggplot object
 Function to plot activity metrics comparison between splits
 }
 \details{
-The function accepts a list of dataframes created
-with createSplits()
+The function plots the variation of every metric over interval index, It is useful to see if all interval were performed
+at the desired target intensity
 }
 \examples{
 gpx <- intervalActivity

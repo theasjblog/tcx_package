@@ -1,27 +1,26 @@
 #' compareSplits
 #' @description
-#' Function to compare activity splits
-#' @param data a list of dataframes generated with gpxAnalyser::createSplits()
+#' Function to generate a summary of the activity data
+#' @param data an activity dataframe or list of dataframes (splits)
 #' @param showMe (character) The metrics to include in the plot. Must be the same name as the column in the dataframe.
-#' @param ftp (numeric) Functional threshold power if bike workout, pace [min/km] if run, functional threshold if using HR
-#' @param ftpType (character) One os 'power', 'pace' or 'HR', to describe what kind of FTP
+#' @param ftp (numeric) Functional threshold power if bike workout, pace [min/km] if run or swim, lactate heart rate
+#' threshold if using HR
+#' @param ftpType (character) One of 'power', 'pace' or 'HR', to describe what kind of FTP
 #' was provided
 #' @return
-#' A dataframe with a summary of comparisons between metrics for the splits
+#' A dataframe with a summary of comparisons between metrics for the activity.
 #' @details
-#' The function accepts a list of dataframes created with createSplits()
+#' The function summarise the activity data in a dataframe. If a valid FTPO and FTP type combination is provided
+#' the function also computes TSS and IF (see Joe Friel blog for more details on these metrics)
 #' @examples
 #' gpx <- intervalActivity
-#' compareSplits(gpx)
+#' compareSplits(gpx, ftp = 4.1, ftpType = "pace")
 #' sp<-autoSplits(gpx)
-#' compareSplits(sp)
+#' compareSplits(sp, ftp = 4.1, ftpType = "pace")
 #' @export
 
 compareSplits<-function(data, showMe = NULL, ftp = NULL,
                         ftpType = c("power", "pace", "HR")[1]){
-
-
-
 
   if (is.data.frame(data)){
     if (is.null(showMe)){
@@ -40,7 +39,7 @@ compareSplits<-function(data, showMe = NULL, ftp = NULL,
   }
 
   toDelta <- c("Time", "Distance")
-  toAvg<-c("Heart rate", "Pace", "Speed", "Power", "Cadence")
+  toAvg<-c("Heart rate", "Pace", "GAP", "Speed", "Power", "Cadence")
   toSum<- c("Elevation gain")
 
 

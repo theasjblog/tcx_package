@@ -8,7 +8,7 @@ createSplits(data, splitValues, type = c("everyKm", "thisKm", "everyMin",
   "thisMin")[1])
 }
 \arguments{
-\item{data}{(dataframe) a dataframe generated with gpxAnalyser::dataLoader()}
+\item{data}{(dataframe) an activity dataframe}
 
 \item{splitValues}{(numeric vector) the split points
 \itemize{
@@ -31,8 +31,8 @@ The function returns a list of data frames, one for each split
 Function to split an activity into custom splits
 }
 \details{
-The function accepts a data frame created with the dataLoader
-function
+The function uses the provided split values and split type to divide the activity dataframe in a list of dataframes,
+each one corresponding to a split starting and finishing at the specified times/distances.
 }
 \examples{
 gpx <- evenActivity

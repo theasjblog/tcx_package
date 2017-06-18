@@ -8,8 +8,7 @@ doPlots(data, xVariable = c("Distance", "Time")[2], showMe = NULL,
   doFacet = TRUE, sp = NULL)
 }
 \arguments{
-\item{data}{a dataframe generated with gpxAnalyser::dataLoader() or the
-list of dataframes generated with gpxAnalyser::createSplits()}
+\item{data}{an activity dataframe}
 
 \item{xVariable}{(character) the variable to put on the x axis. One of 'DistanceMeters'
 or 'Time'}
@@ -35,6 +34,6 @@ with createSplits() or dataLoader()
 gpx <- evenActivity
 doPlots(gpx)
 doPlots(gpx, doFacet = TRUE)
-sp<-createSplits(gpx, 2000, type = "everyKm")
+sp<-autoSplits(gpx)
 doPlots(gpx, sp = sp)
 }

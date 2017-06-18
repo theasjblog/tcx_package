@@ -1,17 +1,19 @@
 #' purgeSplits
 #' @description
 #' Function to a eliminate splits
-#' @param data a list of dataframes generated with gpxAnalyser::createSplits()
+#' @param data a list of dataframes for the activity splits
 #' @param splitsToEliminate (numeric vector) the indexes of the splits
 #' to eliminate from the map view. Default is NULL (no split is eliminated).
 #' @return
 #' A list of data frames
 #' @details
-#' The function accepts a list of dataframes createdwith createSplits() or dataLoader()
+#' This function allows to eliminate splits from the views and the summary tables. This can be useful when an activity includes
+#' rest intervals, and we are interest in metrics that would be biased by the low intensity rest interval (i.e. total intervals
+#' time for a 5X1Km session).
 #' @examples
-#' gpx <- evenActivity
-#' sp <- createSplits(gpx, 2000, type = "everyKm")
-#' purgedSplits <- purgeSplits(sp, splitsToEliminate = c(1))
+#' gpx <- intervalActivity
+#' sp <- autoSplits(gpx)
+#' purgedSplits <- purgeSplits(sp, splitsToEliminate = c(1,3,5,7,9,11,12))
 #' @export
 
 purgeSplits<-function(data, splitsToEliminate = NULL){

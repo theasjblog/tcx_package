@@ -1,17 +1,16 @@
 #' generateMap
 #' @description
-#' Function to a map of the activity
-#' @param data a dataframe generated with gpxAnalyser::dataLoader() or the
-#' list of dataframes generated with gpxAnalyser::createSplits()
+#' Function to generate a map of the activity
+#' @param data an activity dataframe or a list of activity dataframes (splits)
 #' @return
 #' A leaflet object to view as a map
 #' @details
-#' The function accepts a list of dataframes or a data frame created
-#' with createSplits() or dataLoader()
+#' If the activity dataframe(s) contains latitude and longitude informations, then this
+#' function will plot the activity trackpoints on a map
 #' @examples
-#' gpx <- intervalActivity
+#' gpx <- evenActivity
 #' generateMap(gpx)
-#' sp<-createSplits(gpx, 2000, type = "everyKm")
+#' sp <- autoSplits(gpx)
 #' generateMap(sp)
 #' @export
 

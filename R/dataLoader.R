@@ -8,18 +8,21 @@
 #' @import leaflet
 #' @import ggplot2
 #' @import zoo
+#' @importFrom stats lm
 
 NULL
 
 #' dataLoader
 #' @description
-#' Function to load TCX satelltite data
+#' Function to load TCX activity data
 #' @param datapath The path to the tcx file
 #' @return
 #' The function returns a data frame with the tcx data
 #' @details
 #' The function accepts a TCX file with gps data. Files
-#' downloaded from Garmin have been tested
+#' downloaded from Garmin have been tested for swim (OW and pool),
+#' run, cycle (turbo trainer and outdoor) and cross-country skiing.
+#' In theory any TCX should work, but there is guarantee that all will.
 #' @examples
 #' # gpx <- dataLoader("path_to_activity.tcx")
 #' @export
@@ -145,6 +148,15 @@ if("Time" %in% colnames(data) && "DistanceMeters" %in% colnames(data)){
 if ("AltitudeMeters" %in% colnames(data)){
   data$AltitudeMetersDiff<-c(0, diff(data$AltitudeMeters))
 }
+
+if("Time" %in% colnames(data) && "DistanceMeters" %in% colnames(data) && "AltitudeMeters" %in% colnames(data)){
+      grade <- 100 * c(0,diff(data$AltitudeMeters)) / data$DistanceMeters
+      grade[1] <- 0
+      perc <- ifelse(grade > 0, 0.035, 0.018)
+      perc[grade == 0] <- 0
+      data$GAP <- data$Pace - data$Pace*(perc*grade)
+  }
+
     
 
 

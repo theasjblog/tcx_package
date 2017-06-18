@@ -1,29 +1,25 @@
 #' addSeparator
 #' @description
-#' Function to add a split separator
-#' @param data a dataframe generated with gpxAnalyser::dataLoader()
+#' Function to assist in identifying the split values to manually generate splits.
+#' @param data an activity dataframe
 #' @param splitHere (numeric) vector for where to split
 #' @param xVariable (numeric) the variable (column name) to put on the x axis
 #' @param yVariable (numeric) the variable (column name) to put on the y axis
 #' @return
-#' A list of dataframes, one for each split
+#' A ggplot plot
 #' @details
 #' The function accepts a data frame created with dataLoader(). The function does not return a list of splits. It is
 #' intended to be used as a tool to identify the best positions for the splits, which can be generated later on using
-#' createSplits(). The function uses a plot to help with the task. The plot is a representation of the activity
-#' time vs distance. When the lines gets flatter, the speed has decreased. That is likely to be the beginning of a rest
-#' interval. The proposed split times should intercept the plot line where it starts to get flat and where it increases
-#' the slope again, marking the beginning end the end of each rest/active interval. If there is no rest interval, but simply
-#' variations in speed, then the same logic holds: make the proposed split time to intercept the points where the activity
-#' line changes slope.
+#' createSplits(). The function uses a plot to help with the task. By visualising appropriate metrics combiantions
+#' (i.e. 'Time' vs 'Pace') it is possible to exactly identify when a split starts/finishes. The values can then be
+#' used to generate splits using the function createSplits()
 #' @examples
 #' gpx <- intervalActivity
-#' proposedSplits<-c(7,15.5,17,25.5,27,35.5,37,45.5,47,56)
+#' proposedSplits <- c(9, 13, 15, 19, 21.2, 25.1, 27.3, 31.4, 33.4, 37.5, 39.5)
 #' addSeparator(gpx, proposedSplits)
-#' sp<-createSplits(gpx, proposedSplits, "thisMin")
+#' sp <- createSplits(gpx, proposedSplits, "thisMin")
 #' @export
 
-#split on time only?
 addSeparator<-function(data, splitHere, xVariable="Time", yVariable = "Distance"){
   if (!is.data.frame(data)){
     stop("data must be a data frame")

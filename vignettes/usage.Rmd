@@ -66,7 +66,7 @@ sp <- createSplits(gpx, 1500, "everyKm")
 proposedSplits <- c(5, 10)
 addSeparator(gpx, splitHere = proposedSplits, xVariable = "Time", yVariable = "Distance")
 
-proposedSplits <- c(5, 12, 30, 45)
+proposedSplits <- c(9, 13, 15, 19, 21.2, 25.1, 27.3, 31.4, 33.4, 37.5, 39.5)
 addSeparator(gpx, splitHere = proposedSplits, xVariable = "Time", yVariable = "Distance")
 
 sp <- createSplits(gpx, proposedSplits, "thisMin")
@@ -101,13 +101,21 @@ plotCompareSplit(sp)
 
 ## Eliminate splits
 ```{r example13, echo=TRUE, warning=FALSE, message=FALSE}
-gpx <- evenActivity
+gpx <- intervalActivity
 sp <- autoSplits(gpx)
 doPlots(gpx, xVariable = "Time", doFacet = TRUE, sp = sp)
-spReduced <- purgeSplits(sp, splitsToEliminate = c(1,3,5))
+spReduced <- purgeSplits(sp, splitsToEliminate = c(1, 3, 5, 7, 9, 11, 12))
 doPlots(gpx, xVariable = "Time", doFacet = TRUE, sp = spReduced)
 ```
 
+## Decoupling
+```{r example14, echo=TRUE, warning=FALSE, message=FALSE}
+gpx <- evenActivity
+decouplingRes <- decoupling(gpx, variable = "GAP", from = 10, to = 60)
+decouplingRes$compareHR
+decouplingRes$compareVar
+decouplingRes$compareSlopes
+```
 
 # Technical description
 
@@ -254,11 +262,7 @@ $$IF = \frac{NP}{FTP}$$
 
 Where NP is the normalised power, and FTP is the functional threshold power.
 
-The concept of normalised power was developed in cycling, but it can be extended to other metrics such as pace and heart rate. The normalised power is calculated as a rolling average over the activity, with a time step of 30s. That is, the activity is divided into a number of 30s intervals, and the normalised power is computed for all of them. The normalised power is defined as:
-
-$$NP = \sqrt[4]{\frac{\sum_{i=1}^N{\overline{NPs}^4}}{N}}$$
-
-where $\overline{NPs}$ are the averages of power for all the 30s activity blocks.
+The concept of normalised power was developed in cycling, but it can be extended to other metrics such as pace and heart rate. The normalised power is calculated as a rolling average over the activity, with a time step of 30s. That is, the activity is divided into a number of 30s intervals, and the normalised power is computed for all of them. This package will calculate the TSS for every 30s of activity, and then sum all together to give the totatl activity (or split) TSS.
 
 A simple calculation shows that an activity of 1h where the NP is exactly the FTP has TSS equal to 100.
 
@@ -269,7 +273,7 @@ $$TSS_{2} = 100*\frac{3600*(\frac{4}{4})^2}{3600} = 100$$
 $$TSS_{3} = 100*\frac{3600*(\frac{3.5}{4})^2}{3600} = 126.56$$
 To convert both FTP and NP to speed (km/h) from pace (min/km), we need to do 60/FTP and 60/NP. This gives:
 
-$$IF_{pace} = \frac{\frac{60}{NP}}{\frac{60}{FTP}} = \frac{FTP}{NP}$$
+$$IF_{pace} = \frac{\frac{60}{NP_{pace}}}{\frac{60}{FTP_{pace}}} = \frac{FTP_{pace}}{NP_{pace}}$$
 
 With this in mind, we can now verify that the three activities give the expected trend of TSS:
 
@@ -285,10 +289,53 @@ Considering Davies findings, when calculating NP for the running pace, the pace 
 
 The TSS calculated here are in general good agreement with the TSS calculated by TrainingPeaks. However, for some activity there can be a significant difference. This can be due to:
 
-* My error. Altough I checked with all possible references, it is possible that there is some mistake in my equations. If you spot one, please let me know and I will fix it
+* My error. It is possible that there is some mistake in my equations. If you spot one, please let me know and I will fix it
 * Different way of dealing with missing data points. I replace missing data with linearly interpolated ones. I have no way to tell how TrainingPeaks deals with missing data
 * Different smoothing algorithm. I always compute the NP on 30s blocks of raw data. I do not know if TrainingPeaks discard some of the blocks or if it applies some smoothing filters to the data before computing NP
-* Different NP calculation, especially for running pace and GAP. I use the numbers reported by Davis in teh cited paper, however I am aware that other papers have been published reporting either different numbers or some paqrticular cases, such as extreme slopes. I am aware that Strava implements some of these latest findings, such as the ones reported by A.E. Minetti (Energy cost of walking and running at extreme uphill and downhill slopes. Journal of Applied Physiology 93, 1039–1046 (2002))
+* Different NP calculation, especially for running pace and GAP. I use the numbers reported by Davis in the cited paper, however I am aware that other papers have been published reporting either different numbers or some paqrticular cases, such as extreme slopes. I am aware that Strava implements some of these latest findings, such as the ones reported by A.E. Minetti (Energy cost of walking and running at extreme uphill and downhill slopes. Journal of Applied Physiology 93, 1039–1046 (2002))
+
+##Decoupling
+Decoupling is a useful trechnique to asses aerobic fitness. In a long and steady effort, tipically in zone 2, for a fit athlete there is very little decouling before the heart rate and the metric of comaprison, tipically pace, GAP, speed or power. That is, during the effort not only there is very little variation between the first half of the effort and the second half of the effort, but also the two metrics (heart rate and pace, GAP, speed or power) plotted against time will give a very flat line. Consider for instance the following activity:
+
+```{r exampleDecoupling0, echo=TRUE, warning=FALSE, message=FALSE}
+gpx <- evenActivity
+doPlots(gpx)
+```
+
+It is a relatively long and steady run. Even at this level, the hear rate and the GAP appear to be quite flat. Let's take a closer look using the *decoupling()* function, and analysing the activity between 10 and 60 minutes:
+
+```{r exampledecoupling1, echo=TRUE, warning=FALSE, message=FALSE}
+gpx <- evenActivity
+decouplingRes <- decoupling(gpx, variable = "GAP", from = 10, to = 60)
+```
+
+Note that the black vertical lines divides the activity in two halves of equal lengths.
+
+The plot appears a lot less flat now, especially for the GAP. The difference between the minimum and the maximum gap is around 0.15min/Km, equivalent to 9s/Km. Also, the fisrt half was faster than the second half, while the HR remains almost constant. This indicates poor aerobic fitness, and the misalignemnt between heart rate and GAP is called *decoupling*. Using the results from the function *decoupling()*, we can also put a number to the observed differences.
+
+To visualise the variation in heart rate between the first and the second half we can look at the *compareHR* data frame. Ideally, we want to see that there is virtually no difference between the average HR for the first and the second half, and the average overall heart rate. We would also like to see that there is very little difference between the slope for the forst and the second half, and both should be close to 0:
+
+```{r exampledecoupling2, echo=TRUE, warning=FALSE, message=FALSE}
+decouplingRes$compareHR
+```
+
+In this case it looks good. There is a variation of just 4bpm between the first and the second half, both slopes are very close to 0 and quite similar.
+
+To visualise the variation in GAP between the first and the second half we can look at the *compareVar* data frame. Ideally, we want to see a similar behaviour as with the heart rate comparison table:
+```{r exampledecoupling3, echo=TRUE, warning=FALSE, message=FALSE}
+decouplingRes$compareVar
+```
+
+As we can see, there is a difference of about 0.12min between the two halves average, corresponding to roughly 7s/Km. Also, the two slopes are similar to each other, and most importantly they are not very close to 0. All these numbers support the initial observation of poor aerobic fitness.
+
+Finally, we can compare the slopes of the two metrics: heart rate and GAP. In this table, ideally we are aiming for two very similar slopes, and both very close to 0:
+```{r exampledecoupling4, echo=TRUE, warning=FALSE, message=FALSE}
+decouplingRes$compareSlopes
+```
+
+Once again, we can see that the slope for the heart rate is relatively close to 0, as it should be in a steady effort. However, the GAP slope is not, in fact it is about 10 times higher than the slope for heart rate. This suggests poor aerobic fitness, measured through decoupling analysis. For more information about decaupling, head to the Joe Friel blog (link in the final section of this guide).
+
+In all the slope comparisons, the raw data were normalised between 0 and 100 to be able to comapre slopes from data of otherwise different  magnitude.
 
 # Useful links
 
@@ -314,4 +361,6 @@ http://journals.humankinetics.com/doi/pdf/10.1123/jab.14.3.276
 
 https://www.researchgate.net/publication/237251583_Training_and_racing_using_a_power_meter_an_introduction
 
+* Decoupling
 
+https://www.trainingpeaks.com/blog/aerobic-endurance-and-decoupling/

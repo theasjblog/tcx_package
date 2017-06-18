@@ -1,8 +1,7 @@
 #' doPlots
 #' @description
 #' Function to plot activity metrics
-#' @param data a dataframe generated with gpxAnalyser::dataLoader() or the
-#' list of dataframes generated with gpxAnalyser::createSplits()
+#' @param data an activity dataframe
 #' @param xVariable (character) the variable to put on the x axis. One of 'DistanceMeters'
 #' or 'Time'
 #' @param showMe (character) The metrics to include in the plot. Must be the same name as the column in the dataframe.
@@ -18,7 +17,7 @@
 #' gpx <- evenActivity
 #' doPlots(gpx)
 #' doPlots(gpx, doFacet = TRUE)
-#' sp<-createSplits(gpx, 2000, type = "everyKm")
+#' sp<-autoSplits(gpx)
 #' doPlots(gpx, sp = sp)
 #' @export
 
@@ -62,8 +61,7 @@ doPlots<-function(data, xVariable = c("Distance","Time")[2],
   if (length(idx)>0){
     data <- data[,idx]
   }
-  
-  
+
 
 
     if(!is.null(sp)){
@@ -80,6 +78,7 @@ doPlots<-function(data, xVariable = c("Distance","Time")[2],
   if (length(idx)>0){
     data <- data[-idx,]
   }
+ 
   selection<-melting(data, xVariable)
 
   value <-NULL

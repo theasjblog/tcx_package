@@ -13,11 +13,13 @@ dataLoader(datapath)
 The function returns a data frame with the tcx data
 }
 \description{
-Function to load TCX satelltite data
+Function to load TCX activity data
 }
 \details{
 The function accepts a TCX file with gps data. Files
-downloaded from Garmin have been tested
+downloaded from Garmin have been tested for swim (OW and pool),
+run, cycle (turbo trainer and outdoor) and cross-country skiing.
+In theory any TCX should work, but there is guarantee that all will.
 }
 \examples{
 # gpx <- dataLoader("path_to_activity.tcx")

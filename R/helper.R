@@ -1,44 +1,3 @@
-split_coord <- function(mystring){
-  pipi<-unique(unlist(str_locate_all(mystring,"\\+")))
-  me<-unique(unlist(str_locate_all(mystring,"\\-")))
-  ee<-unique(unlist(str_locate_all(mystring,"E")))
-  pime<-sort(c(pipi,me,ee))
-  di<-diff(pime)
-  if (any(di==1)){
-    b<-which(di==1)
-    re<-c(b,b+1)
-    pime<-pime[-c(re)]
-  }
-  if (length(pime) <1){
-    po<-unique(unlist(str_locate_all(mystring,"\\.")))[2]
-    lat<-as.numeric(str_sub(mystring,1,po-1))
-    lon<-as.numeric(str_sub(mystring,po))
-  } else {
-
-    if (pime[1]==1){
-      pime<-pime[-c(1)]
-    }
-    lat <-as.numeric(str_sub(mystring,1,pime[1]-1))
-    lon<-as.numeric(str_sub(mystring,pime[1]))
-  }
-  return(list(lat = lat,
-              lon = lon
-  )
-  )
-}
-
-
-
-getSummary <- function(df){
-  data.frame(Altitude = sum(df$Elevation),
-             Distance = df$Distance[length(df$Distance)],
-             HR = mean(df[,"Heart rate"]),
-             Pace = mean(df$InstPace[df$InstPace !=0]),
-             Speed = mean(df$InstSpeed[df$InstSpeed !=0])
-  )
-}
-
-
 deltaF<-function(x){if (max(x) != min(x)){max(x)-min(x)}else{x}}
 avgF<-function(x){mean(x[x!=0])}
 sumF<-function(x){sum(x)}
@@ -50,7 +9,6 @@ melting<-function (data, xVariable){
 
   columns<-colnames(data)
 
-
   data[xVariable]<-data[xVariable]-min(data[xVariable])
   xymelt <- melt(data, id.vars = xVariable)
 
@@ -58,6 +16,8 @@ melting<-function (data, xVariable){
   selection$variable<-as.character(selection$variable)
   a<-split(selection, selection$variable)
   a<-lapply(a, function(x){
+    x$value[is.nan(x$value)]  <-  min(x$value[!is.nan(x$value) & !is.infinite(x$value)])
+    x$value[is.infinite(x$value)]  <-  max(x$value[!is.nan(x$value) & !is.infinite(x$value)])
     x$value_norm<-rescale(as.numeric(x$value),c(0,100))
     x$value <- as.numeric(x$value)
     x$variable<-x$variable
@@ -68,13 +28,6 @@ melting<-function (data, xVariable){
   selection<-setDF(rbindlist(a))
 }
 
-modifyColumns<- function(summaryTable, adding, selectedColumn){
-  summaryTable[,selectedColumn] <- c(summaryTable[1, selectedColumn],
-                                     diff(summaryTable[, selectedColumn]))
-  adding[selectedColumn] <- sum(summaryTable[, selectedColumn])
-  return(list(summaryTable = summaryTable,
-              adding = adding))
-}
 
 doSplit <- function(data, what, splitValues){
   data$OriginalIdx <- seq(1,dim(data)[1],1)
@@ -363,3 +316,90 @@ computeDeltaAvgSum <- function(df, toDelta, toSum, toAvg){
   res<-c(res1, res2, res3)
   return(res)
 }
+
+
+fitLm <- function(x, y){
+  y <- rescale(y, c(0,100))
+  ff <- lm(y ~ x)
+  ff <- ff$coefficients[2]
+  return(ff)
+}
+
+
+computeDecoupling <- function(data, variable, from, to){
+  divide <- mean(c(from, to))
+  sp <- createSplits(data, c(from, divide, to), "thisMin")
+  intervals <- length(sp)
+  if(intervals >=4){
+    sp <- purgeSplits(sp, c(1,length(sp)))
+  } else if(intervals ==2) {
+    sp <- sp
+  } else if (intervals == 3){
+    if (from == 0){
+      sp <- purgeSplits(sp, length(sp))
+    } else {
+      sp <- purgeSplits(sp, 1)
+    }
+  }
+  
+  allHR <- c(sp[[1]][,"Heart rate"],sp[[2]][,"Heart rate"])
+  allVar <- c(sp[[1]][,variable],sp[[2]][,variable])
+  allTime <- c(sp[[1]][,"Time"],sp[[2]][,"Time"])
+  HR1 <- sp[[1]][,"Heart rate"]
+  HR2 <- sp[[2]][,"Heart rate"]
+  var1 <- sp[[1]][,variable]
+  var2 <- sp[[2]][,variable]
+  time1 <- sp[[1]][,"Time"]
+  time2 <- sp[[2]][,"Time"]
+  
+  compareHR  <-  data.frame(Overall = mean(allHR),
+                            First = mean(HR1),
+                            Second = mean(HR2),
+                            slope_first = fitLm(time1, HR1),
+                            slope_second = fitLm(time2, HR2))
+  row.names(compareHR) <- ""
+  
+  compareVar  <-  data.frame(Overall = mean(allVar),
+                             First = mean(var1),
+                             Second = mean(var2),
+                             slope_first = fitLm(time1, var1),
+                             slope_second = fitLm(time2, var2))
+  row.names(compareVar) <- ""
+  
+  compareSlopes  <-  data.frame(HR = fitLm(allTime, allHR),
+                                Selected_variable = fitLm(allTime, allVar))
+  row.names(compareSlopes) <- ""
+  
+  
+  return(list(compareHR = compareHR,
+              compareVar = compareVar,
+              compareSlopes = compareSlopes))
+  
+}
+
+
+plotDecoupling <- function(data, variable, from, to){
+  divide <- mean(c(from, to))
+  data <- data[,c("Time", "Heart rate", variable)]
+  time <- data$Time
+  data[data$Time<from | data$Time > to,] <- NA
+  
+  data$Time <- time
+  data <- melt(data, id.vars = "Time")
+  value <- NULL
+  p <- ggplot(data, aes(x = data$Time, y = as.numeric(value),
+                        group = variable, color = variable)) +
+    geom_line() + 
+    geom_vline(xintercept = divide) +
+    xlim(from,to) + 
+    xlab("Time") +
+    ylab("Value") + 
+    facet_grid(variable ~ ., scales = "free") +
+    theme_bw() +
+    theme(legend.position='none')
+  
+  
+  print(p)
+  return(p)
+}
+

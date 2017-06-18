@@ -2,24 +2,25 @@
 % Please edit documentation in R/autoSplits.R
 \name{autoSplits}
 \alias{autoSplits}
-\title{splitsFinder}
+\title{autoSplits}
 \usage{
 autoSplits(data)
 }
 \arguments{
-\item{data}{a dataframe generated with gpxAnalyser::dataLoader()}
+\item{data}{an activity dataframe}
 }
 \value{
 A list of dataframes, one for each split
 }
 \description{
-Function to automatically detect splits. If the splits were recorded by the Garmin device, the function
-will find and return those
+Function to automatically detect splits recorded in the activity.
 }
 \details{
-The function accepts a data frame created with dataLoader()
+Sometimes intervals are recorded directly in the activity, for instance when pressing the Lap button on a
+Garmin device. This function will identify such splits, if any is present. The splits are identified as
+repeated rows in the data frame.
 }
 \examples{
 gpx <- intervalActivity
-autoSp <- autoSplits(gpx) #to use Garmin splits
+autoSp <- autoSplits(gpx)
 }

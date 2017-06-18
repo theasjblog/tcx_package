@@ -1,7 +1,7 @@
 #' createSplits
 #' @description
 #' Function to split an activity into custom splits
-#' @param data (dataframe) a dataframe generated with gpxAnalyser::dataLoader()
+#' @param data (dataframe) an activity dataframe
 #' @param splitValues (numeric vector) the split points
 #' \itemize{
 #' \item To split for distance enter the value in meters, i.e. 1000 to split at every Km
@@ -17,8 +17,8 @@
 #' @return
 #' The function returns a list of data frames, one for each split
 #' @details
-#' The function accepts a data frame created with the dataLoader
-#' function
+#' The function uses the provided split values and split type to divide the activity dataframe in a list of dataframes,
+#' each one corresponding to a split starting and finishing at the specified times/distances.
 #' @examples
 #' gpx <- evenActivity
 #' sp<-createSplits(gpx, 2000, type = "everyKm")
@@ -30,12 +30,7 @@
 createSplits <- function (data, splitValues,
                           type = c("everyKm","thisKm", "everyMin", "thisMin")[1]){
 
-#  if("Distance" %in% colnames(data) & any(diff(data$Distance)<0)){
-#    message("This workout is likely a swim. It will be split as such")
-#    n <- split(data, seq(nrow(data)))
-#  } else {
-  #Km is in meters
-  #time is in minutes
+
   if (type == "everyKm"){
     if(!"Distance" %in% colnames(data)){
       stop("Cannot split by distance as the column 'Distance' is not present")
