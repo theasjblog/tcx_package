@@ -54,6 +54,13 @@ generateMap(gpx)
 doPlots(gpx,xVariable = "Time", showMe = colnames(gpx), doFacet = TRUE)
 ```
 
+## Smooth data
+```{r example5a, echo = TRUE, warning = FALSE, message=FALSE}
+smoothedData <- gpxSmooth(gpx, variable = "Pace", k = 39)
+#If variable is not given then all variables in gpxOriginal will be smoothed, except
+#Time, Distance, LatitudeDegrees, LongitudeDegrees
+smoothedData <- gpxSmooth(gpx, k = 39)
+```
 ## Generate splits
 
 ### Manually
