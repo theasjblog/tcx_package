@@ -43,7 +43,7 @@ doSplit <- function(data, what, splitValues){
       n[[i]] <- rbind(n[[i-1]][length(n[[i-1]]$Time),],n[[i]])
     }
   }
-  
+
 
   n<-lapply(n,function(x){
     if ("Time" %in% colnames(x)){
@@ -223,7 +223,7 @@ computeNp <- function(df, ftp, ftpType){
           b$Time <- seq(from = 0,
                             to = max(b$Time),
                             len = length(b$Time))
-          
+
           b$Pace <- 1000*b$Time/b$Distance
           b$Speed <- 0.06*b$Distance/b$Time
           b$Pace[1] <- 0
@@ -267,7 +267,7 @@ computeNp <- function(df, ftp, ftpType){
     ifs <- ifs[!is.na(ifs)]
     ifs <- ifs[!is.infinite(ifs)]
   }
-  
+
   return(ifs)
 }
 
@@ -341,7 +341,7 @@ computeDecoupling <- function(data, variable, from, to){
       sp <- purgeSplits(sp, 1)
     }
   }
-  
+
   allHR <- c(sp[[1]][,"Heart rate"],sp[[2]][,"Heart rate"])
   allVar <- c(sp[[1]][,variable],sp[[2]][,variable])
   allTime <- c(sp[[1]][,"Time"],sp[[2]][,"Time"])
@@ -351,30 +351,30 @@ computeDecoupling <- function(data, variable, from, to){
   var2 <- sp[[2]][,variable]
   time1 <- sp[[1]][,"Time"]
   time2 <- sp[[2]][,"Time"]
-  
+
   compareHR  <-  data.frame(Overall = mean(allHR),
                             First = mean(HR1),
                             Second = mean(HR2),
                             slope_first = fitLm(time1, HR1),
                             slope_second = fitLm(time2, HR2))
   row.names(compareHR) <- ""
-  
+
   compareVar  <-  data.frame(Overall = mean(allVar),
                              First = mean(var1),
                              Second = mean(var2),
                              slope_first = fitLm(time1, var1),
                              slope_second = fitLm(time2, var2))
   row.names(compareVar) <- ""
-  
+
   compareSlopes  <-  data.frame(HR = fitLm(allTime, allHR),
                                 Selected_variable = fitLm(allTime, allVar))
   row.names(compareSlopes) <- ""
-  
-  
+
+
   return(list(compareHR = compareHR,
               compareVar = compareVar,
               compareSlopes = compareSlopes))
-  
+
 }
 
 
@@ -383,22 +383,22 @@ plotDecoupling <- function(data, variable, from, to){
   data <- data[,c("Time", "Heart rate", variable)]
   time <- data$Time
   data[data$Time<from | data$Time > to,] <- NA
-  
+
   data$Time <- time
   data <- melt(data, id.vars = "Time")
   value <- NULL
   p <- ggplot(data, aes(x = data$Time, y = as.numeric(value),
                         group = variable, color = variable)) +
-    geom_line() + 
+    geom_line() +
     geom_vline(xintercept = divide) +
-    xlim(from,to) + 
+    xlim(from,to) +
     xlab("Time") +
-    ylab("Value") + 
+    ylab("Value") +
     facet_grid(variable ~ ., scales = "free") +
     theme_bw() +
     theme(legend.position='none')
-  
-  
+
+
   print(p)
   return(p)
 }

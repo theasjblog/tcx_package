@@ -88,8 +88,8 @@ times<-c(as.matrix(read.table(text = n, sep = ":")) %*% c(60, 1, 1/60))
       data<-dealMissingPoints(data, issues, nds)
 
     }
-    
-    
+
+
 
     fields<-names(data)
     for (i in 1:length(fields)){
@@ -102,11 +102,11 @@ times<-c(as.matrix(read.table(text = n, sep = ":")) %*% c(60, 1, 1/60))
       }
     }
 
-    
+
     data$Time<-times-times[1]
     data <- as.data.frame(data)
-    
-    
+
+
     idx<-which(is.na(apply(data,2,sum)))
     rowsRemove <- NULL
     if(length(idx)>0){
@@ -139,34 +139,59 @@ times<-c(as.matrix(read.table(text = n, sep = ":")) %*% c(60, 1, 1/60))
 
 
 if("Time" %in% colnames(data) && "DistanceMeters" %in% colnames(data)){
-  data$Pace<-1000*data$Time/data$DistanceMeters
-  data$Speed<-0.06*data$DistanceMeters/data$Time
-  data$Pace[1]<-0
-  data$Speed[1]<-0
+  data$Pace<-c(0,1000*diff(data$Time)/diff(data$DistanceMeters))
+  data$Speed<-c(0,0.06*diff(data$DistanceMeters)/diff(data$Time))
+  #data$Pace[1]<-0
+  #data$Speed[1]<-0
+  #idx <- unique(
+  #  c(which(is.infinite(data$Pace)),
+  #    which(is.nan(data$Pace))))
+  #data <- data[-idx,]
   data$DistanceMeters[1] <- 0
+  idx <- which(is.nan(data$Pace))
+  if (length(idx)>0){
+    data[idx,] <- data[idx-1,]
+  }
+  idx <- which(is.nan(data$Pace))
+  if (length(idx)>0){
+    data[idx,] <- data[idx-1,]
+  }
+  idx <- which(is.infinite(data$Pace))
+  if (length(idx)>0){
+    data <- data[-idx,]
+  }
 }
+#    Inf and NaN issue in compareSplits:
+#    na.rm = TRUE
+#    Multiply your matrix by the result of is.finite(m) and call rowSums on the product with na.rm=TRUE. This works because Inf*0 is NaN.
+#
+#    m <- matrix(c(1:3,Inf,4,Inf,5:6),4,2)
+#    rowSums(m*is.finite(m),na.rm=TRUE)
+#    na.rm = TRUE
+
 if ("AltitudeMeters" %in% colnames(data)){
   data$AltitudeMetersDiff<-c(0, diff(data$AltitudeMeters))
 }
 
 if("Time" %in% colnames(data) && "DistanceMeters" %in% colnames(data) && "AltitudeMeters" %in% colnames(data)){
-      grade <- 100 * c(0,diff(data$AltitudeMeters)) / data$DistanceMeters
+      grade <- 100 * c(0,diff(data$AltitudeMeters)) / c(1,diff(data$DistanceMeters))
       grade[1] <- 0
       perc <- ifelse(grade > 0, 0.035, 0.018)
       perc[grade == 0] <- 0
       data$GAP <- data$Pace - data$Pace*(perc*grade)
+      idx <- which(is.nan(data$GAP))
+      if (length(idx)>0){
+        data[idx,] <- data[idx-1,]
+      }
+      idx <- which(is.infinite(data$GAP))
+      if (length(idx)>0){
+        data <- data[-idx,]
+      }
+
   }
-
-    
-
-
 
 newNames <- unlist(lapply(seq_along(data),function(i){displayNames(colnames(data)[i])}))
 colnames(data) <- newNames
-
-
-
-
 
 return(data)
 
