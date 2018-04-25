@@ -120,22 +120,22 @@ times<-c(as.matrix(read.table(text = n, sep = ":")) %*% c(60, 1, 1/60))
 
 
     #fix pauses
-    if (!all(diff(data$DistanceMeters[data$DistanceMeters!=0]) %% min(data$DistanceMeters[data$DistanceMeters!=0]) == 0)){#exclude swims in pool
-      v <- round(diff(data$Time), digits = 4)
-      v <- v[v != 0]
-      v <- factor(v)
-      a <- summary(v)
-      thres <- as.numeric(names(a)[a == max(a)])[1]
-      newTime <- rep(0, length(data$Time))
-      for (i in 2:length(data$Time)){
-        if (data$Time[i] != data$Time[i-1]){
-          newTime[i] <- newTime[i-1]+thres
-        } else if (data$Time[i] == data$Time[i-1]){
-          newTime[i] <- newTime[i-1]
-        }
-      }
-      data$Time <- newTime
-    }
+    #if (!all(diff(data$DistanceMeters[data$DistanceMeters!=0]) %% min(data$DistanceMeters[data$DistanceMeters!=0]) == 0)){#exclude swims in pool
+    #  v <- round(diff(data$Time), digits = 4)
+    #  v <- v[v != 0]
+    #  v <- factor(v)
+    #  a <- summary(v)
+    #  thres <- as.numeric(names(a)[a == max(a)])[1]
+    #  newTime <- rep(0, length(data$Time))
+    #  for (i in 2:length(data$Time)){
+    #    if (data$Time[i] != data$Time[i-1]){
+    #      newTime[i] <- newTime[i-1]+thres
+    #    } else if (data$Time[i] == data$Time[i-1]){
+    #      newTime[i] <- newTime[i-1]
+    #    }
+    #  }
+    #  data$Time <- newTime
+    #}
 
 
 if("Time" %in% colnames(data) && "DistanceMeters" %in% colnames(data)){
