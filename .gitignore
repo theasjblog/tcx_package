@@ -5,3 +5,7 @@
 *.Rproj
 .Rproj*
 packrat/lib*/
+.Rproj.user
+tcxAnalyser.Rcheck/
+tcxAnalyser*.tar.gz
+tcxAnalyser*.tgz

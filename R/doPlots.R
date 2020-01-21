@@ -86,7 +86,7 @@ doPlots<-function(data, xVariable = c("Distance","Time")[2],
   value_norm<-NULL
 
     if (doFacet){
-      p<-ggplot(data = selection,aes(x = selection[xVariable], y = as.numeric(value),
+      p <- ggplot(data = selection,aes(x = selection[xVariable], y = as.numeric(value),
                                      group = variable, color = variable)) +
         geom_line() +
         #geom_area(aes(fill = variable)) +

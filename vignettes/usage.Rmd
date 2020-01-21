@@ -29,9 +29,9 @@ gpx <- intervalActivity
 
 
 ##Load data
-```{r example1, echo=TRUE, warning=FALSE, message=FALSE}
+```{r example1, echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
 #Do not execute
-# gpx <- dataLoader('path_to_file.tcx')
+gpx <- dataLoader('path_to_file.tcx')
 ```
 
 ## View a summary table

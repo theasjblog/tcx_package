@@ -1,4 +1,9 @@
+^renv$
+^renv\.lock$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^packrat/
 ^\.Rprofile$
+^tcxAnalyser\.Rcheck$
+^tcxAnalyser.*\.tar\.gz$
+^tcxAnalyser.*\.tgz$
