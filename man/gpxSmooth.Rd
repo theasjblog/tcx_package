@@ -4,8 +4,7 @@
 \alias{gpxSmooth}
 \title{gpxSmooth}
 \usage{
-gpxSmooth(data, variable = NULL, k, endrule = c("median", "keep",
-  "constant")[1], algorithm = NULL, print.level = 0)
+gpxSmooth(data, variable = NULL, k = 1)
 }
 \arguments{
 \item{data}{(dataframe) an activity dataframe}
@@ -13,13 +12,16 @@ gpxSmooth(data, variable = NULL, k, endrule = c("median", "keep",
 \item{variable}{(character) the column name of the variable to smooth. If NULL, all
 variable except 'Time', 'Distance', 'LatitudeDegrees' and 'LongitudeDegrees' will be
 smoothed}
+
+\item{k}{integer the size of the smooting kernel. Must be odd.
+An inner function converts even Ks to the closest odd K.}
 }
 \value{
 An activity dataframe with smoothed data
 }
 \description{
 Function to smooth  variable. The function uses the function
-runmed() to smooth the data. See its documentation for
+rollmean() from the package zoo to smooth the data. See its documentation for
 arguents and tier meaning
 }
 \details{

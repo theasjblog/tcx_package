@@ -4,8 +4,13 @@
 \alias{doPlots}
 \title{doPlots}
 \usage{
-doPlots(data, xVariable = c("Distance", "Time")[2], showMe = NULL,
-  doFacet = TRUE, sp = NULL)
+doPlots(
+  data,
+  xVariable = c("Distance", "Time")[2],
+  showMe = NULL,
+  doFacet = TRUE,
+  sp = NULL
+)
 }
 \arguments{
 \item{data}{an activity dataframe}

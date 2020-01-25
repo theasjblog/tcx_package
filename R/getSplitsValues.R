@@ -1,4 +1,4 @@
-#' getSplitsValues
+#' @title getSplitsValues
 #' @description
 #' Function to detSplitsValues
 #' @param gpx (data frame) a dataframe generated with gpxAnalyser::dataLoader()
@@ -14,7 +14,6 @@
 #' sp <- autoSplits(gpx)
 #' splitsValues <- getSplitsValues(gpx, sp, "Time")
 #' @export
-
 getSplitsValues <- function(gpx, sp, xVariable){
   splitsIdx <- unlist(lapply(sp, function(x){
     x$OriginalIdx[1]

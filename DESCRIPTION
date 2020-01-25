@@ -7,7 +7,7 @@ Description: The package analyses tcx files obtained from Garmin connect.
   Activities can be divided in splits and summary tables and plots can
   be produced to analyse the activity.
 Depends: R (>= 3.3.1)
-License: What license is it under?
+License: GPL-2
 Imports: xml2,
   dplyr,
   data.table,
@@ -20,5 +20,5 @@ Imports: xml2,
   zoo
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.0.1
+RoxygenNote: 7.0.2
 Suggests: testthat

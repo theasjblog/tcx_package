@@ -4,8 +4,11 @@
 \alias{createSplits}
 \title{createSplits}
 \usage{
-createSplits(data, splitValues, type = c("everyKm", "thisKm", "everyMin",
-  "thisMin")[1])
+createSplits(
+  data,
+  splitValues,
+  type = c("everyKm", "thisKm", "everyMin", "thisMin")[1]
+)
 }
 \arguments{
 \item{data}{(dataframe) an activity dataframe}

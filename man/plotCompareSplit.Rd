@@ -4,9 +4,15 @@
 \alias{plotCompareSplit}
 \title{plotCompareSplits}
 \usage{
-plotCompareSplit(data, doFacet = TRUE, type = c("raw", "norm", "perc")[1],
-  xVariable = "Time", showMe = NULL, ftp = NULL, ftpType = c("power",
-  "pace", "HR")[1])
+plotCompareSplit(
+  data,
+  doFacet = TRUE,
+  type = c("raw", "norm", "perc")[1],
+  xVariable = "Time",
+  showMe = NULL,
+  ftp = NULL,
+  ftpType = c("power", "pace", "HR")[1]
+)
 }
 \arguments{
 \item{data}{(list) the list of dataframes for the activity splits}

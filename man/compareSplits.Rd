@@ -4,8 +4,12 @@
 \alias{compareSplits}
 \title{compareSplits}
 \usage{
-compareSplits(data, showMe = NULL, ftp = NULL, ftpType = c("power",
-  "pace", "HR")[1])
+compareSplits(
+  data,
+  showMe = NULL,
+  ftp = NULL,
+  ftpType = c("power", "pace", "HR")[1]
+)
 }
 \arguments{
 \item{data}{an activity dataframe or list of dataframes (splits)}
