@@ -9,18 +9,18 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-#Introduction
+# Introduction
 
-The package supplies a set of functionalities to analyse workouts TCX files. Such files can normally be exported from websites such as Garmin Connect or in some cases directly from the device recording it.
+The package supplies a set of functionality to analyze workouts TCX files. Such files can normally be exported from websites such as Garmin Connect or in some cases directly from the device recording it.
 
-##Requirements
+## Requirements
 
-* A TCX containg at least time informations. Altough several TCX have been tested, the developer cannot guarantee 100% compatibility with all TCX files
+* A TCX containing at least time information. Although several TCX have been tested, the developer cannot guarantee 100% compatibility with all TCX files
 * For TSS calculations a FTP/LHT is requested
 
-#Quick reference
+# Quick reference
 
-The following session provides a breif overview of the main package functions. To view functions details and a complete list of arguments, use the R command *??functionName*
+The following session provides a brief overview of the main package functions. To view functions details and a complete list of arguments, use the R command *??functionName*
 ```{r example0, echo=FALSE, warning=FALSE, message=FALSE}
 library(tcxAnalyser)
 gpx <- intervalActivity
@@ -28,7 +28,7 @@ gpx <- intervalActivity
 
 
 
-##Load data
+## Load data
 ```{r example1, echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
 #Do not execute
 gpx <- dataLoader('path_to_file.tcx')
@@ -143,7 +143,7 @@ The data loader will also perform the following operation:
 * Deal with mis-matching variables due to missing data points in one or more channels
 * Interpolate missing data point (i.e dropped power or heart rate for a number of seconds/minutes)
 * Compute pace and speed
-* Deal with long chuncks of inactivity, i.e. bike ride coffee break
+* Deal with long chunks of inactivity, i.e. bike ride coffee break
 
 ### Deal with mis-matching variables
 In some activity (especially swimming), columns read from the tcx file can have different lengths. The package attempts to recover the missing values in the shorter columns. The missing rows are replaced by NAs. After this take place, the package will attempt to fill in the missing numbers.
@@ -155,7 +155,7 @@ Missing numbers are replaced following the rules:
 * Missing number with index = length(variable column). The Na is replaced with the closest non NA value moving upwards into the variable column
 * All other cases. Missing numbers are replaced using linear interpolation between the closest non NAs
 
-The three cases are summarised in the following example
+The three cases are summarized in the following example
 
 ```{r replaceNAs, echo=TRUE, warning=FALSE, message=FALSE}
 myVariable <- c(NA,1,2,3,NA,NA,NA,7,NA)
@@ -182,7 +182,7 @@ myVariable
 ```
 
 ## Deal with long pauses
-Long pauses can artificially inflate the duration of an activity. Such long pauses can occour, for instance, when stoppoing for red light, or when stopping for a coffee break. Even if the watch goes in auto-pause, or you press STOP, the time elapsed before the activity resumes is still counted towards the total activity elapsed time. This is because the time is not recorded as starting from 0 and then incrementing, and pausing while in STOP mode, but instead every event is recorded based on the timestamp. That is, if the activity starts at 8:00am, then you ride non stop for 2h before pressing the STOP button, then you have 30 min break, then you resume the ride for other 2h, the total time will be calculated as follow:
+Long pauses can artificially inflate the duration of an activity. Such long pauses can occour, for instance, when stopping for red light, or when stopping for a coffee break. Even if the watch goes in auto-pause, or you press STOP, the time elapsed before the activity resumes is still counted towards the total activity elapsed time. This is because the time is not recorded as starting from 0 and then incrementing, and pausing while in STOP mode, but instead every event is recorded based on the timestamp. That is, if the activity starts at 8:00am, then you ride non stop for 2h before pressing the STOP button, then you have 30 min break, then you resume the ride for other 2h, the total time will be calculated as follow:
 
 * Start time: 8:00am
 * Pause start 10:00am
@@ -192,7 +192,7 @@ Long pauses can artificially inflate the duration of an activity. Such long paus
 
 This will clearly affect your pace/speed, any other average (Watts, cadence, HR etc) and the activity TSS.
 
-The package will eliminate the pause by replacing the gap with the most frequent time interval for the rest of the activity (tipically 1s). This replacement is not performed in pool-based swims, as doing so will force all the intervals (lengths) to be computed with the same time, making the activity an artificially perfectly constant swim. Open water swim do not have this problem, as the lapping/recording method is not based on pool lengths, but on standard time/distance mode, as for riding or cycling activities.
+The package will eliminate the pause by replacing the gap with the most frequent time interval for the rest of the activity (typically 1s). This replacement is not performed in pool-based swims, as doing so will force all the intervals (lengths) to be computed with the same time, making the activity an artificially perfectly constant swim. Open water swim do not have this problem, as the lapping/recording method is not based on pool lengths, but on standard time/distance mode, as for riding or cycling activities.
 
 ## Generate splits
 
@@ -230,7 +230,7 @@ proposedSplits <- c(15, 17)
 addSeparator(gpx, proposedSplits, xVariable = "Time", yVariable = "Distance")
 ```
 
-In this kind of plot Time/Distance, every change of pace can be visualised as a change in the slope of the red line. The aim is to have the blue lines to cross the points where the change of slope can be seen:
+In this kind of plot Time/Distance, every change of pace can be visualized as a change in the slope of the red line. The aim is to have the blue lines to cross the points where the change of slope can be seen:
 
 ```{r assistedSp1, echo=FALSE, warning=FALSE, message=FALSE}
 sp <- autoSplits(gpx)
@@ -253,9 +253,9 @@ Training Stress Score (TSS) is a registered term brought to the sport community 
 
 ### FTP
 
-First of all a disclaimer. There are several definition of FTP, and for the sake of simplicity, here I adhere to the definition available in TrainingPeaks. Also, I will call FTP also the pace threshold for running (normally otherwise referred to FTPa) and the lactate heart rate treshold (LHRT). I will also not discuss how to measure them. There are plenty of resource available on-line (I suggest to look for the tests recommended by Joe Friel).
+First of all a disclaimer. There are several definition of FTP, and for the sake of simplicity, here I adhere to the definition available in TrainingPeaks. Also, I will call FTP also the pace threshold for running (normally otherwise referred to FTPa) and the lactate heart rate threshold (LHRT). I will also not discuss how to measure them. There are plenty of resource available on-line (I suggest to look for the tests recommended by Joe Friel).
 
-If TSS is a measure of a specific workout intensity, FTP is a measure of the overall level of fitness at a spefic time of your preparation. For instance, it can be the average power you can output in 1h hard ride.
+If TSS is a measure of a specific workout intensity, FTP is a measure of the overall level of fitness at a specific time of your preparation. For instance, it can be the average power you can output in 1h hard ride.
 
 ## Computing TSS
 
@@ -269,7 +269,7 @@ $$IF = \frac{NP}{FTP}$$
 
 Where NP is the normalised power, and FTP is the functional threshold power.
 
-The concept of normalised power was developed in cycling, but it can be extended to other metrics such as pace and heart rate. The normalised power is calculated as a rolling average over the activity, with a time step of 30s. That is, the activity is divided into a number of 30s intervals, and the normalised power is computed for all of them. This package will calculate the TSS for every 30s of activity, and then sum all together to give the totatl activity (or split) TSS.
+The concept of normalised power was developed in cycling, but it can be extended to other metrics such as pace and heart rate. The normalised power is calculated as a rolling average over the activity, with a time step of 30s. That is, the activity is divided into a number of 30s intervals, and the normalised power is computed for all of them. This package will calculate the TSS for every 30s of activity, and then sum all together to give the total activity (or split) TSS.
 
 A simple calculation shows that an activity of 1h where the NP is exactly the FTP has TSS equal to 100.
 
@@ -299,10 +299,10 @@ The TSS calculated here are in general good agreement with the TSS calculated by
 * My error. It is possible that there is some mistake in my equations. If you spot one, please let me know and I will fix it
 * Different way of dealing with missing data points. I replace missing data with linearly interpolated ones. I have no way to tell how TrainingPeaks deals with missing data
 * Different smoothing algorithm. I always compute the NP on 30s blocks of raw data. I do not know if TrainingPeaks discard some of the blocks or if it applies some smoothing filters to the data before computing NP
-* Different NP calculation, especially for running pace and GAP. I use the numbers reported by Davis in the cited paper, however I am aware that other papers have been published reporting either different numbers or some paqrticular cases, such as extreme slopes. I am aware that Strava implements some of these latest findings, such as the ones reported by A.E. Minetti (Energy cost of walking and running at extreme uphill and downhill slopes. Journal of Applied Physiology 93, 1039–1046 (2002))
+* Different NP calculation, especially for running pace and GAP. I use the numbers reported by Davis in the cited paper, however I am aware that other papers have been published reporting either different numbers or some particular cases, such as extreme slopes. I am aware that Strava implements some of these latest findings, such as the ones reported by A.E. Minetti (Energy cost of walking and running at extreme uphill and downhill slopes. Journal of Applied Physiology 93, 1039–1046 (2002))
 
-##Decoupling
-Decoupling is a useful trechnique to asses aerobic fitness. In a long and steady effort, tipically in zone 2, for a fit athlete there is very little decouling before the heart rate and the metric of comaprison, tipically pace, GAP, speed or power. That is, during the effort not only there is very little variation between the first half of the effort and the second half of the effort, but also the two metrics (heart rate and pace, GAP, speed or power) plotted against time will give a very flat line. Consider for instance the following activity:
+## Decoupling
+Decoupling is a useful technique to asses aerobic fitness. In a long and steady effort, typically in zone 2, for a fit athlete there is very little decoupling before the heart rate and the metric of comparison, typically pace, GAP, speed or power. That is, during the effort not only there is very little variation between the first half of the effort and the second half of the effort, but also the two metrics (heart rate and pace, GAP, speed or power) plotted against time will give a very flat line. Consider for instance the following activity:
 
 ```{r exampleDecoupling0, echo=TRUE, warning=FALSE, message=FALSE}
 gpx <- evenActivity
@@ -318,9 +318,9 @@ decouplingRes <- decoupling(gpx, variable = "GAP", from = 10, to = 60)
 
 Note that the black vertical lines divides the activity in two halves of equal lengths.
 
-The plot appears a lot less flat now, especially for the GAP. The difference between the minimum and the maximum gap is around 0.15min/Km, equivalent to 9s/Km. Also, the fisrt half was faster than the second half, while the HR remains almost constant. This indicates poor aerobic fitness, and the misalignemnt between heart rate and GAP is called *decoupling*. Using the results from the function *decoupling()*, we can also put a number to the observed differences.
+The plot appears a lot less flat now, especially for the GAP. The difference between the minimum and the maximum gap is around 0.15min/Km, equivalent to 9s/Km. Also, the first half was faster than the second half, while the HR remains almost constant. This indicates poor aerobic fitness, and the misalignment between heart rate and GAP is called *decoupling*. Using the results from the function *decoupling()*, we can also put a number to the observed differences.
 
-To visualise the variation in heart rate between the first and the second half we can look at the *compareHR* data frame. Ideally, we want to see that there is virtually no difference between the average HR for the first and the second half, and the average overall heart rate. We would also like to see that there is very little difference between the slope for the forst and the second half, and both should be close to 0:
+To visualise the variation in heart rate between the first and the second half we can look at the *compareHR* data frame. Ideally, we want to see that there is virtually no difference between the average HR for the first and the second half, and the average overall heart rate. We would also like to see that there is very little difference between the slope for the first and the second half, and both should be close to 0:
 
 ```{r exampledecoupling2, echo=TRUE, warning=FALSE, message=FALSE}
 decouplingRes$compareHR
@@ -340,9 +340,9 @@ Finally, we can compare the slopes of the two metrics: heart rate and GAP. In th
 decouplingRes$compareSlopes
 ```
 
-Once again, we can see that the slope for the heart rate is relatively close to 0, as it should be in a steady effort. However, the GAP slope is not, in fact it is about 10 times higher than the slope for heart rate. This suggests poor aerobic fitness, measured through decoupling analysis. For more information about decaupling, head to the Joe Friel blog (link in the final section of this guide).
+Once again, we can see that the slope for the heart rate is relatively close to 0, as it should be in a steady effort. However, the GAP slope is not, in fact it is about 10 times higher than the slope for heart rate. This suggests poor aerobic fitness, measured through decoupling analysis. For more information about decoupling, head to the Joe Friel blog (link in the final section of this guide).
 
-In all the slope comparisons, the raw data were normalised between 0 and 100 to be able to comapre slopes from data of otherwise different  magnitude.
+In all the slope comparisons, the raw data were normalised between 0 and 100 to be able to compare slopes from data of otherwise different  magnitude.
 
 # Useful links
 
